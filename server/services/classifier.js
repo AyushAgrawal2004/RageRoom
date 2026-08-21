@@ -25,11 +25,13 @@ const CLASSIFIER_SYSTEM_PROMPT = `Classify the following support agent message i
 - repetitive_script (the agent repeats a question the customer just answered, ignores what they just said, or reads from a boilerplate script without listening)
 - neutral (general conversation, no strong sentiment)
 
-Respond with ONLY the category name in lowercase, nothing else.`;
+You MUST respond with valid JSON in this exact format:
+{
+  "category": "category_name_here"
+}`;
 
 async function classifyAgentMessage(openaiClient, agentMessage, conversationHistory = []) {
   try {
-    // Extract last 2 customer messages for context
     const recentHistory = conversationHistory.slice(-3).map(m => `${m.role === 'user' ? 'Agent' : 'Customer'}: ${m.content}`).join('\n');
     
     const response = await openaiClient.chat.completions.create({
@@ -39,10 +41,11 @@ async function classifyAgentMessage(openaiClient, agentMessage, conversationHist
         { role: 'user', content: `Recent Context:\n${recentHistory || 'None'}\n\nAgent's latest message to classify: "${agentMessage}"` }
       ],
       temperature: 0.1,
-      max_tokens: 15
+      response_format: { type: 'json_object' }
     });
 
-    const category = response.choices[0].message.content.trim().toLowerCase();
+    const output = JSON.parse(response.choices[0].message.content.trim());
+    const category = output.category ? output.category.toLowerCase() : 'neutral';
     
     if (CATEGORIES.includes(category)) return category;
     
