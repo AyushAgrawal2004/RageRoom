@@ -172,8 +172,8 @@ app.post('/api/chat', async (req, res) => {
       { upsert: true }
     );
 
-    // 1. Classify agent message
-    const category = await classifyAgentMessage(openai, userMessage);
+    // 2. Classify the agent's response using the secondary LLM (with history context)
+    const category = await classifyAgentMessage(openai, userMessage, conversationHistory);
     
     // 2. Get deterministic deltas
     const deltas = factorMatrix[category] || factorMatrix['neutral'];
@@ -223,10 +223,12 @@ Your CURRENT emotional state is:
 - loyalty: ${newFactors.loyalty}/10
 - satisfaction: ${newFactors.satisfaction}/10
 
-Your reply's tone MUST genuinely reflect this state. 
-- If frustration is 8+ and patience is 2 or below, you are on the verge of ending the conversation or demanding a manager.
-- If trust is low, be skeptical of any promises made.
-- If satisfaction and trust are both high, you may start being noticeably more cooperative and even apologize for your earlier tone.
+Rules for your response:
+1. Stay perfectly in character.
+2. Keep your responses concise (1-3 sentences).
+3. If the agent repeats a question you just answered, or gives a robotic script, express extreme frustration at their incompetence. DO NOT repeat your previous message.
+4. Let your emotional state heavily dictate your tone. If frustration is high, use exclamation marks and short sentences. If patience is low, threaten to cancel or escalate. If trust is high, be more forgiving.
+5. If the agent solves the issue well and your satisfaction goes up, acknowledge it and de-escalate.
 
 Instructions:
 1. Respond in character to the agent's latest message based on your backstory and the new emotional state.
