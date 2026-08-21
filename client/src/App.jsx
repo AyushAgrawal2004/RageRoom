@@ -199,17 +199,39 @@ function App() {
         setIsSpeaking(false);
       }
     } catch (err) {
-      console.error('Failed to play TTS audio:', err.response?.data || err.message);
-      setIsSpeaking(false);
-      // Fallback: start recording immediately if TTS fails so session doesn't freeze
-      if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
-        setTimeout(() => {
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            if (e.name === 'InvalidStateError') setIsRecording(true);
+      console.error('Failed to fetch/play remote TTS audio, falling back to browser TTS:', err.response?.data || err.message);
+      
+      // Fallback to built-in browser TTS
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                if (e.name === 'InvalidStateError') setIsRecording(true);
+              }
+            }, 400);
           }
-        }, 400);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsSpeaking(false);
+        // Absolute fallback if browser TTS isn't available either
+        if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
+          setTimeout(() => {
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              if (e.name === 'InvalidStateError') setIsRecording(true);
+            }
+          }, 400);
+        }
       }
     }
   };
@@ -243,6 +265,9 @@ function App() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop();

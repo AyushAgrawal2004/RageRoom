@@ -236,36 +236,31 @@ Instructions:
   }
 });
 
-// POST /api/tts - Sarvam AI Text-to-Speech
+// POST /api/tts - Text-to-Speech
 app.post('/api/tts', async (req, res) => {
-  const { text, languageCode } = req.body;
+  const { text, languageCode, voice } = req.body;
   if (!text) {
     return res.status(400).json({ error: 'Text is required' });
   }
 
-  try {
-    const response = await axios.post('https://api.sarvam.ai/text-to-speech', {
-      text: text,
-      model: "bulbul:v3",
-      language_code: languageCode || "hi-IN",
-      speaker: "shubh",
-      output_audio_codec: "mp3"
-    }, {
-      headers: {
-        'api-subscription-key': process.env.SARVAM_API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
+  const providerName = process.env.TTS_PROVIDER || 'kokoro';
+  console.log(`[TTS] Request received, using provider: ${providerName}`);
 
-    const audios = response.data.audios;
-    if (audios && audios.length > 0) {
-      res.json({ audio: audios[0], contentType: 'audio/mp3' });
+  try {
+    let synthesize;
+    if (providerName === 'sarvam') {
+      synthesize = require('./tts-providers/sarvam').synthesize;
     } else {
-      res.status(500).json({ error: 'No audio returned from Sarvam AI' });
+      synthesize = require('./tts-providers/kokoro').synthesize;
     }
+
+    const result = await synthesize(text, { languageCode, voice });
+    console.log(`[TTS] Success using ${result.provider}`);
+    res.json(result);
   } catch (error) {
     const apiError = error.response?.data || error.message;
-    console.error('Error calling Sarvam TTS:', apiError);
+    console.error(`[TTS] Error with provider ${providerName}:`, apiError);
+    // Return a 500 error, so the frontend can catch it and gracefully fall back to default behavior
     res.status(500).json({ error: 'Failed to generate speech', details: apiError });
   }
 });
