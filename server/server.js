@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+dotenv.config();
+
 const { OpenAI } = require('openai');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
@@ -13,8 +15,6 @@ const personas = require('./data/personas');
 const { classifyAgentMessage } = require('./services/classifier');
 const { factorMatrix, decayConfig } = require('./data/factorMatrix');
 const { generateReportCard } = require('./services/judge');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5005;
