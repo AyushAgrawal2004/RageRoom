@@ -4,6 +4,9 @@ import './App.css';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+const SILENCE_THRESHOLD = 2500; // ms of silence before auto-submit
+const TOTAL_SILENCE_TIMEOUT = 10000; // ms of total silence before giving up
+
 function App() {
   const [personas, setPersonas] = useState([]);
   const [selectedPersona, setSelectedPersona] = useState(null);
@@ -17,6 +20,7 @@ function App() {
   const [inputMode, setInputMode] = useState('chat'); // 'chat' or 'voice'
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [autoMessage, setAutoMessage] = useState(null);
   
   const [currentFactors, setCurrentFactors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -24,6 +28,18 @@ function App() {
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
+  
+  // Refs for tracking voice auto-submit logic
+  const inputModeRef = useRef(inputMode);
+  const transcriptRef = useRef('');
+  const lastSpeechTimestamp = useRef(0);
+  const silenceCheckIntervalRef = useRef(null);
+  const totalSilenceTimeoutRef = useRef(null);
+  const isSubmittingRef = useRef(false);
+
+  useEffect(() => {
+    inputModeRef.current = inputMode;
+  }, [inputMode]);
 
   useEffect(() => {
     const fetchPersonas = async () => {
@@ -41,13 +57,17 @@ function App() {
     };
     fetchPersonas();
 
-    // Initialize speech recognition if available
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
     }
+
+    return () => {
+      if (silenceCheckIntervalRef.current) clearInterval(silenceCheckIntervalRef.current);
+      if (totalSilenceTimeoutRef.current) clearTimeout(totalSilenceTimeoutRef.current);
+    };
   }, []);
 
   // Update speech recognition callbacks so they always have the latest state closures
@@ -55,19 +75,57 @@ function App() {
     if (recognitionRef.current) {
       recognitionRef.current.onstart = () => {
         setIsRecording(true);
+        transcriptRef.current = '';
+        isSubmittingRef.current = false;
+        lastSpeechTimestamp.current = Date.now();
+        setAutoMessage(null);
+
+        // Clear any existing timers
+        if (silenceCheckIntervalRef.current) clearInterval(silenceCheckIntervalRef.current);
+        if (totalSilenceTimeoutRef.current) clearTimeout(totalSilenceTimeoutRef.current);
+
+        // Start total silence timeout
+        totalSilenceTimeoutRef.current = setTimeout(() => {
+          if (transcriptRef.current.trim() === '') {
+            recognitionRef.current.stop();
+            setAutoMessage("Didn't catch that — tap the mic to try again");
+          }
+        }, TOTAL_SILENCE_TIMEOUT);
+
+        // Start silence checking interval
+        silenceCheckIntervalRef.current = setInterval(() => {
+          if (transcriptRef.current.trim() !== '') {
+            if (Date.now() - lastSpeechTimestamp.current > SILENCE_THRESHOLD) {
+              // Silence detected!
+              clearInterval(silenceCheckIntervalRef.current);
+              setAutoMessage("Silence detected, sending...");
+              recognitionRef.current.stop();
+              
+              if (!isSubmittingRef.current) {
+                isSubmittingRef.current = true;
+                sendMessage(transcriptRef.current, 'voice');
+              }
+            }
+          }
+        }, 500);
       };
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setIsRecording(false);
-        // Automatically send the transcribed text
-        sendMessage(transcript, 'voice');
+        lastSpeechTimestamp.current = Date.now();
+        
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          fullTranscript += event.results[i][0].transcript;
+        }
+        transcriptRef.current = fullTranscript;
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsRecording(false);
-        // Don't show scary errors for just being quiet
+        if (silenceCheckIntervalRef.current) clearInterval(silenceCheckIntervalRef.current);
+        if (totalSilenceTimeoutRef.current) clearTimeout(totalSilenceTimeoutRef.current);
+        
         if (event.error !== 'no-speech' && event.error !== 'aborted') {
           setError('Microphone error: ' + event.error);
         }
@@ -75,9 +133,17 @@ function App() {
       
       recognitionRef.current.onend = () => {
         setIsRecording(false);
+        if (silenceCheckIntervalRef.current) clearInterval(silenceCheckIntervalRef.current);
+        if (totalSilenceTimeoutRef.current) clearTimeout(totalSilenceTimeoutRef.current);
+
+        // If stopped manually and there's text, and we haven't submitted yet
+        if (!isSubmittingRef.current && transcriptRef.current.trim() !== '') {
+          isSubmittingRef.current = true;
+          sendMessage(transcriptRef.current, 'voice');
+        }
       };
     }
-  }); // Runs on every render to ensure callbacks have latest state
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -91,6 +157,21 @@ function App() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      
+      utterance.onend = () => {
+        if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
+          setTimeout(() => {
+            try {
+              recognitionRef.current.start();
+            } catch (err) {
+              if (err.name === 'InvalidStateError') {
+                setIsRecording(true);
+              }
+            }
+          }, 400); // Small delay so it's not jarring
+        }
+      };
+
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -134,6 +215,8 @@ function App() {
       return;
     }
     setError(null);
+    setAutoMessage(null);
+    
     if (isRecording) {
       recognitionRef.current.stop();
     } else {
@@ -142,7 +225,6 @@ function App() {
       } catch (err) {
         console.error("Failed to start recording:", err);
         if (err.name === 'InvalidStateError') {
-          // Already started, sync state
           setIsRecording(true);
         }
       }
@@ -159,6 +241,7 @@ function App() {
   const sendMessage = async (userMsg, modeUsed) => {
     if (!userMsg) return;
     setError(null);
+    setAutoMessage(null);
 
     const newMessages = [...messages, { role: 'user', content: userMsg, inputMode: modeUsed }];
     setMessages(newMessages);
@@ -426,7 +509,14 @@ function App() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+            <div className="p-4 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.02)] relative">
+              {/* Floating Auto Message Indicator */}
+              {autoMessage && (
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                  {autoMessage}
+                </div>
+              )}
+
               {inputMode === 'chat' ? (
                 <form onSubmit={handleSendForm} className="flex gap-3">
                   <input 
@@ -454,22 +544,22 @@ function App() {
                   ) : (
                     <button
                       onClick={toggleRecording}
-                      disabled={loading}
+                      disabled={loading || isSubmittingRef.current}
                       className={'flex items-center gap-3 px-10 py-3 rounded-full font-bold text-white transition shadow-md ' + 
                         (isRecording 
                           ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
                           : 'bg-emerald-600 hover:bg-emerald-700') + 
-                        (loading ? ' opacity-50 cursor-not-allowed' : ' transform active:scale-95')}
+                        ((loading || isSubmittingRef.current) ? ' opacity-50 cursor-not-allowed' : ' transform active:scale-95')}
                     >
                       {isRecording ? (
                         <>
                           <span className="w-3 h-3 bg-white rounded-full"></span>
-                          Listening... (Click to Stop)
+                          Listening... (Auto-submits on pause)
                         </>
                       ) : (
                         <>
                           <span>🎤</span>
-                          Start Recording
+                          {loading ? 'Sending...' : 'Tap to Start Listening'}
                         </>
                       )}
                     </button>
