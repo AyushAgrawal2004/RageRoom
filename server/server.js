@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 
 const Conversation = require('./models/Conversation');
 const personas = require('./data/personas');
@@ -232,6 +233,41 @@ Instructions:
       details: error.message,
       groqError: error.response?.data || error.error 
     });
+  }
+});
+
+// POST /api/tts - Sarvam AI Text-to-Speech
+app.post('/api/tts', async (req, res) => {
+  const { text, languageCode } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'Text is required' });
+  }
+
+  try {
+    const response = await axios.post('https://api.sarvam.ai/text-to-speech', {
+      inputs: [text], // Fallback for older spec
+      target_language_code: languageCode || 'hi-IN',
+      text: text, // New spec
+      model: "bulbul:v3",
+      language_code: languageCode || "hi-IN",
+      speaker: "shubh",
+      output_audio_codec: "mp3"
+    }, {
+      headers: {
+        'api-subscription-key': process.env.SARVAM_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const audios = response.data.audios;
+    if (audios && audios.length > 0) {
+      res.json({ audio: audios[0], contentType: 'audio/mp3' });
+    } else {
+      res.status(500).json({ error: 'No audio returned from Sarvam AI' });
+    }
+  } catch (error) {
+    console.error('Error calling Sarvam TTS:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to generate speech' });
   }
 });
 

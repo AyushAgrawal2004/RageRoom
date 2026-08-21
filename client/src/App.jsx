@@ -153,26 +153,54 @@ function App() {
     scrollToBottom();
   }, [messages, loading]);
 
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      utterance.onend = () => {
-        if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
-          setTimeout(() => {
-            try {
-              recognitionRef.current.start();
-            } catch (err) {
-              if (err.name === 'InvalidStateError') {
-                setIsRecording(true);
-              }
-            }
-          }, 400); // Small delay so it's not jarring
-        }
-      };
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef(null);
 
-      window.speechSynthesis.speak(utterance);
+  const speakText = async (text) => {
+    setIsSpeaking(true);
+    
+    // Cancel any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    try {
+      const res = await axios.post('http://localhost:5005/api/tts', { text });
+      
+      if (res.data.audio) {
+        // Sarvam audio returns base64
+        const audioSrc = `data:${res.data.contentType || 'audio/mp3'};base64,${res.data.audio}`;
+        const audio = new Audio(audioSrc);
+        audioRef.current = audio;
+        
+        audio.onended = () => {
+          setIsSpeaking(false);
+          if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+              } catch (err) {
+                if (err.name === 'InvalidStateError') {
+                  setIsRecording(true);
+                }
+              }
+            }, 400); // Small delay so it's not jarring
+          }
+        };
+
+        audio.onerror = () => {
+          console.error("Audio playback error");
+          setIsSpeaking(false);
+        }
+        
+        await audio.play();
+      } else {
+        setIsSpeaking(false);
+      }
+    } catch (err) {
+      console.error('Failed to play TTS audio:', err);
+      setIsSpeaking(false);
     }
   };
 
@@ -202,7 +230,10 @@ function App() {
     setSessionId(null);
     setMessages([]);
     setCurrentFactors({});
-    window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsRecording(false);
@@ -496,6 +527,14 @@ function App() {
                     <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full"></span>
                     <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.2s' }}></span>
                     <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.4s' }}></span>
+                  </div>
+                </div>
+              )}
+
+              {isSpeaking && !loading && (
+                <div className="flex justify-start">
+                  <div className="bg-blue-50 border border-blue-200 text-blue-600 rounded-2xl rounded-tl-none px-5 py-3 shadow-sm flex gap-2 items-center h-12 text-sm font-medium animate-pulse">
+                    <span>🔊 Loading voice...</span>
                   </div>
                 </div>
               )}
