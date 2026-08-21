@@ -12,9 +12,22 @@ const messageSchema = new mongoose.Schema({
 
 const conversationSchema = new mongoose.Schema({
   sessionId: { type: String, required: true, unique: true },
-  personaUsed: { type: String },
-  startingFactors: { type: Map, of: Number },
+  personaUsed: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  startingFactors: {
+    type: Map,
+    of: Number,
+    required: true
+  },
   messages: [messageSchema],
+  reportCard: {
+    professionalism: Number,
+    deEscalation: Number,
+    problemSolving: Number,
+    empathy: Number,
+    overallScore: Number,
+    feedback: String
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

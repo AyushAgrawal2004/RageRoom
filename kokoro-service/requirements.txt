@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-kokoro
-soundfile
-torch
-numpy
-pydantic

@@ -4,23 +4,27 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
 const { v4: uuidv4 } = require('uuid');
-const axios = require('axios');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const Conversation = require('./models/Conversation');
+const User = require('./models/User');
 const personas = require('./data/personas');
 const { classifyAgentMessage } = require('./services/classifier');
 const { factorMatrix, decayConfig } = require('./data/factorMatrix');
+const { generateReportCard } = require('./services/judge');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5005;
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_123';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection (optional for MVP)
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/difficult_customer_simulator')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
@@ -31,15 +35,83 @@ const openai = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
-// GET /api/personas - return list of available personas
+/* =======================================================================
+   AUTH ROUTES
+======================================================================= */
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) return res.status(400).json({ error: 'Username already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id, username }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, username } });
+  } catch (err) {
+    res.status(500).json({ error: 'Registration failed', details: err.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ userId: user._id, username }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, username } });
+  } catch (err) {
+    res.status(500).json({ error: 'Login failed', details: err.message });
+  }
+});
+
+// Middleware to authenticate requests
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Access denied' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+/* =======================================================================
+   SESSION ROUTE
+======================================================================= */
+app.get('/api/sessions', authMiddleware, async (req, res) => {
+  try {
+    const sessions = await Conversation.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .select('sessionId personaUsed createdAt reportCard');
+    res.json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+/* =======================================================================
+   SIMULATOR ROUTES
+======================================================================= */
 app.get('/api/personas', (req, res) => {
   res.json(personas);
 });
 
-// POST /api/start - start a new session
+// POST /api/start - start a new session (optionally authenticated)
 app.post('/api/start', async (req, res) => {
   try {
-    const { personaId, customFactors } = req.body;
+    const { personaId, customFactors, userId } = req.body;
     
     const persona = personas.find(p => p.id === personaId) || personas[0];
     const startingFactors = customFactors || persona.startingFactors;
@@ -51,21 +123,18 @@ app.post('/api/start', async (req, res) => {
       factors: startingFactors,
       category: 'initial',
       deltas: {},
+      inputMode: 'chat',
       timestamp: new Date()
     };
     
-    // Save to DB (optional)
-    try {
-      const conversation = new Conversation({
-        sessionId,
-        personaUsed: persona.id,
-        startingFactors,
-        messages: [initialMessage]
-      });
-      await conversation.save();
-    } catch (dbErr) {
-      console.warn('Could not save initial session to DB:', dbErr.message);
-    }
+    const conversation = new Conversation({
+      sessionId,
+      userId: userId || null, // Link to user if provided
+      personaUsed: persona.id,
+      startingFactors,
+      messages: [initialMessage]
+    });
+    await conversation.save();
 
     res.json({ sessionId, message: initialMessage, persona });
   } catch (error) {
@@ -86,16 +155,12 @@ app.post('/api/chat', async (req, res) => {
   }
 
   try {
-    // Save user message to DB (optional)
-    try {
-      await Conversation.findOneAndUpdate(
-        { sessionId },
-        { $push: { messages: { role: 'user', content: userMessage, inputMode: inputMode || 'chat', timestamp: new Date() } } },
-        { upsert: true }
-      );
-    } catch (dbErr) {
-      console.warn('Could not save user message to DB:', dbErr.message);
-    }
+    // Save user message to DB
+    await Conversation.findOneAndUpdate(
+      { sessionId },
+      { $push: { messages: { role: 'user', content: userMessage, inputMode: inputMode || 'chat', timestamp: new Date() } } },
+      { upsert: true }
+    );
 
     // 1. Classify agent message
     const category = await classifyAgentMessage(openai, userMessage);
@@ -103,10 +168,8 @@ app.post('/api/chat', async (req, res) => {
     // 2. Get deterministic deltas
     const deltas = factorMatrix[category] || factorMatrix['neutral'];
     
-    // 3. Check for decay (e.g. every N turns of the user)
-    // We can estimate turns by looking at conversationHistory.
-    const userTurnCount = (conversationHistory || []).filter(m => m.role === 'user').length + 1; // +1 for current message
-    
+    // 3. Check for decay
+    const userTurnCount = (conversationHistory || []).filter(m => m.role === 'user').length + 1;
     let applyDecay = false;
     if (userTurnCount > 0 && userTurnCount % decayConfig.turnsPerDecay === 0) {
       applyDecay = true;
@@ -114,7 +177,7 @@ app.post('/api/chat', async (req, res) => {
 
     // 4. Calculate new factors
     const newFactors = {};
-    const finalDeltas = {}; // to send to frontend showing exactly what changed
+    const finalDeltas = {}; 
 
     for (const factor of Object.keys(currentFactors)) {
       let change = deltas[factor] || 0;
@@ -124,14 +187,12 @@ app.post('/api/chat', async (req, res) => {
       
       const newVal = clamp(currentFactors[factor] + change);
       newFactors[factor] = newVal;
-      
-      // Calculate actual delta (since clamping might have restricted it)
       finalDeltas[factor] = newVal - currentFactors[factor];
     }
 
     const persona = personas.find(p => p.id === personaId) || personas[0];
     
-    // 5. Build prompt for AI (only asks for 'reply')
+    // 5. Build prompt for AI
     const SYSTEM_PROMPT = `You are a customer interacting with a support agent.
 Role: ${persona.name}
 Backstory/Situation: ${persona.backstory}
@@ -155,7 +216,6 @@ Instructions:
   "reply": "<your in-character response text>"
 }`;
 
-    // Format history
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...(conversationHistory || []).map(msg => ({
@@ -209,15 +269,10 @@ Instructions:
       timestamp: new Date()
     };
 
-    // Save AI response to DB
-    try {
-      await Conversation.findOneAndUpdate(
-        { sessionId },
-        { $push: { messages: aiMessage } }
-      );
-    } catch (dbErr) {
-      console.warn('Could not save AI message to DB:', dbErr.message);
-    }
+    await Conversation.findOneAndUpdate(
+      { sessionId },
+      { $push: { messages: aiMessage } }
+    );
 
     res.json({
       reply: parsedResponse.reply,
@@ -228,40 +283,39 @@ Instructions:
 
   } catch (error) {
     console.error('Error calling Groq API:', error);
-    res.status(500).json({ 
-      error: 'Failed to communicate with AI', 
-      details: error.message,
-      groqError: error.response?.data || error.error 
-    });
+    res.status(500).json({ error: 'Failed to communicate with AI', details: error.message });
   }
 });
 
-// POST /api/tts - Text-to-Speech
-app.post('/api/tts', async (req, res) => {
-  const { text, languageCode, voice } = req.body;
-  if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
-  }
-
-  const providerName = process.env.TTS_PROVIDER || 'kokoro';
-  console.log(`[TTS] Request received, using provider: ${providerName}`);
+// POST /api/end - End session and generate report card
+app.post('/api/end', async (req, res) => {
+  const { sessionId } = req.body;
+  
+  if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
   try {
-    let synthesize;
-    if (providerName === 'sarvam') {
-      synthesize = require('./tts-providers/sarvam').synthesize;
-    } else {
-      synthesize = require('./tts-providers/kokoro').synthesize;
+    const conversation = await Conversation.findOne({ sessionId });
+    if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+    if (conversation.reportCard && conversation.reportCard.overallScore) {
+      return res.json({ reportCard: conversation.reportCard });
     }
 
-    const result = await synthesize(text, { languageCode, voice });
-    console.log(`[TTS] Success using ${result.provider}`);
-    res.json(result);
+    // Build transcript
+    let transcriptText = `Persona: ${conversation.personaUsed}\n\n`;
+    conversation.messages.forEach(msg => {
+      const speaker = msg.role === 'assistant' ? 'Customer' : 'Agent';
+      transcriptText += `${speaker}: ${msg.content}\n`;
+    });
+
+    const reportCard = await generateReportCard(transcriptText);
+
+    conversation.reportCard = reportCard;
+    await conversation.save();
+
+    res.json({ reportCard });
   } catch (error) {
-    const apiError = error.response?.data || error.message;
-    console.error(`[TTS] Error with provider ${providerName}:`, apiError);
-    // Return a 500 error, so the frontend can catch it and gracefully fall back to default behavior
-    res.status(500).json({ error: 'Failed to generate speech', details: apiError });
+    console.error('Error ending session:', error);
+    res.status(500).json({ error: 'Failed to generate report card' });
   }
 });
 
