@@ -20,6 +20,7 @@ const conversationSchema = new mongoose.Schema({
     required: true
   },
   messages: [messageSchema],
+  crmData: { type: Object },
   reportCard: {
     professionalism: Number,
     deEscalation: Number,

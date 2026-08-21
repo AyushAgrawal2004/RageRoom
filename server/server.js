@@ -116,6 +116,15 @@ app.post('/api/start', async (req, res) => {
     const persona = personas.find(p => p.id === personaId) || personas[0];
     const startingFactors = customFactors || persona.startingFactors;
     
+    // Generate dynamic CRM Data
+    const crmData = { ...persona.crmData };
+    for (const key in crmData) {
+      if (typeof crmData[key] === 'string' && crmData[key].includes('[RANDOM]')) {
+         const randomNum = Math.floor(10000 + Math.random() * 90000); // 5 digit random
+         crmData[key] = crmData[key].replace('[RANDOM]', randomNum);
+      }
+    }
+    
     const sessionId = uuidv4();
     const initialMessage = {
       role: 'assistant',
@@ -129,14 +138,15 @@ app.post('/api/start', async (req, res) => {
     
     const conversation = new Conversation({
       sessionId,
-      userId: userId || null, // Link to user if provided
+      userId: userId || null, 
       personaUsed: persona.id,
       startingFactors,
+      crmData,
       messages: [initialMessage]
     });
     await conversation.save();
 
-    res.json({ sessionId, message: initialMessage, persona });
+    res.json({ sessionId, message: initialMessage, persona, crmData });
   } catch (error) {
     console.error('Error starting session:', error);
     res.status(500).json({ error: 'Failed to start session' });
@@ -148,7 +158,7 @@ const clamp = (val) => Math.max(1, Math.min(10, val));
 
 // POST /api/chat - process human response
 app.post('/api/chat', async (req, res) => {
-  const { sessionId, conversationHistory, userMessage, personaId, currentFactors, inputMode } = req.body;
+  const { sessionId, conversationHistory, userMessage, personaId, currentFactors, inputMode, crmData } = req.body;
 
   if (!sessionId || !userMessage) {
     return res.status(400).json({ error: 'sessionId and userMessage are required' });
@@ -192,10 +202,19 @@ app.post('/api/chat', async (req, res) => {
 
     const persona = personas.find(p => p.id === personaId) || personas[0];
     
+    // Format CRM data for the AI
+    let crmPromptAddition = "";
+    if (crmData) {
+      crmPromptAddition = `\n\nYour Real Account Details (If the agent asks for these, provide them exactly. If the agent provides incorrect numbers, correct them or get suspicious):\n`;
+      for (const [k, v] of Object.entries(crmData)) {
+        crmPromptAddition += `- ${k}: ${v}\n`;
+      }
+    }
+    
     // 5. Build prompt for AI
     const SYSTEM_PROMPT = `You are a customer interacting with a support agent.
 Role: ${persona.name}
-Backstory/Situation: ${persona.backstory}
+Backstory/Situation: ${persona.backstory}${crmPromptAddition}
 
 Your CURRENT emotional state is:
 - frustration: ${newFactors.frustration}/10

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../App.css'; // Adjust path if needed
+import '../App.css'; 
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -16,6 +16,7 @@ function Chat({ user }) {
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [crmData, setCrmData] = useState(null);
   
   const [inputMode, setInputMode] = useState('chat');
   const [input, setInput] = useState('');
@@ -182,6 +183,7 @@ function Chat({ user }) {
       setSessionId(response.data.sessionId);
       setMessages([response.data.message]);
       setCurrentFactors(response.data.message.factors);
+      setCrmData(response.data.crmData); // Save generated CRM data
       setSessionActive(true);
       speakText(response.data.message.content);
     } catch (err) {
@@ -255,7 +257,8 @@ function Chat({ user }) {
         currentFactors: currentFactors,
         conversationHistory: newMessages.slice(0, -1),
         userMessage: userMsg,
-        inputMode: modeUsed
+        inputMode: modeUsed,
+        crmData: crmData // Pass CRM data to backend so AI can reference it
       });
 
       const aiReply = response.data.reply;
@@ -315,126 +318,157 @@ function Chat({ user }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[90vh]">
+    <div className="min-h-screen bg-slate-200 flex flex-col p-4">
+      {/* Header */}
+      <header className="bg-slate-800 text-white px-6 py-4 flex justify-between items-center rounded-xl shadow-md mb-4 shrink-0">
+        <h1 className="text-xl font-bold flex items-center gap-3">
+          <span className="text-2xl">⚡️</span> 
+          Difficult Customer Simulator
+        </h1>
         
-        {/* Header */}
-        <header className="bg-slate-800 text-white p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Difficult Customer Simulator</h1>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex bg-slate-700 rounded-lg p-1">
-              <button 
-                onClick={() => setInputMode('chat')}
-                className={'px-3 py-1 text-sm rounded-md transition ' + (inputMode === 'chat' ? 'bg-blue-600 text-white font-semibold shadow' : 'text-slate-300 hover:text-white')}
-              >
-                Chat Mode
-              </button>
-              <button 
-                onClick={() => setInputMode('voice')}
-                className={'px-3 py-1 text-sm rounded-md transition ' + (inputMode === 'voice' ? 'bg-blue-600 text-white font-semibold shadow' : 'text-slate-300 hover:text-white')}
-              >
-                Voice Mode
-              </button>
-            </div>
-
-            {sessionActive ? (
-              <button 
-                onClick={endSession}
-                disabled={isEnding}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-semibold transition disabled:opacity-50"
-              >
-                {isEnding ? 'Grading...' : 'End Session'}
-              </button>
-            ) : (
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded text-sm font-semibold transition"
-              >
-                &larr; Dashboard
-              </button>
-            )}
+        <div className="flex items-center gap-4">
+          <div className="flex bg-slate-700 rounded-lg p-1">
+            <button 
+              onClick={() => setInputMode('chat')}
+              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'chat' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-300 hover:text-white')}
+            >
+              Chat Mode
+            </button>
+            <button 
+              onClick={() => setInputMode('voice')}
+              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'voice' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-300 hover:text-white')}
+            >
+              Voice Mode
+            </button>
           </div>
-        </header>
 
-        {!sessionActive ? (
-          <div className="flex-1 flex flex-col p-8 overflow-y-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 text-center">Setup Training Scenario</h2>
-            {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-gray-700 border-b pb-2">1. Choose Persona</h3>
-                {personas.length === 0 ? (
-                  <p className="text-gray-500">Loading personas...</p>
-                ) : (
-                  <div className="space-y-3">
-                    {personas.map(p => (
-                      <div 
-                        key={p.id}
-                        onClick={() => handlePersonaSelect(p)}
-                        className={'p-4 border rounded-lg cursor-pointer transition ' + (selectedPersona?.id === p.id ? 'border-blue-500 bg-blue-50 shadow-sm' : 'hover:bg-gray-50')}
-                      >
-                        <h4 className="font-bold text-gray-800">{p.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{p.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+          {sessionActive ? (
+            <button 
+              onClick={endSession}
+              disabled={isEnding}
+              className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold shadow transition disabled:opacity-50"
+            >
+              {isEnding ? 'Grading...' : 'End Session'}
+            </button>
+          ) : (
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-sm font-bold shadow transition"
+            >
+              &larr; Dashboard
+            </button>
+          )}
+        </div>
+      </header>
 
-              <div className="space-y-6">
-                <h3 className="text-lg font-bold text-gray-700 border-b pb-2">2. Customize Starting State</h3>
-                {selectedPersona && customFactors ? (
-                  <div className="bg-gray-50 p-4 rounded-lg border space-y-4">
-                    {Object.keys(customFactors).map(factor => (
-                      <div key={factor} className="flex flex-col gap-1">
-                        <div className="flex justify-between text-sm font-medium text-gray-700 capitalize">
-                          <span>{factor}</span>
-                          <span>{customFactors[factor]}/10</span>
+      {!sessionActive ? (
+        <div className="flex-1 flex flex-col items-center justify-center">
+           <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold mb-6 text-slate-800 text-center">Setup Training Scenario</h2>
+              {error && <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded-lg mb-6 text-center">{error}</div>}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-slate-700 border-b pb-2">1. Choose Persona</h3>
+                  {personas.length === 0 ? (
+                    <p className="text-slate-500">Loading personas...</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {personas.map(p => (
+                        <div 
+                          key={p.id}
+                          onClick={() => handlePersonaSelect(p)}
+                          className={'p-4 border rounded-xl cursor-pointer transition ' + (selectedPersona?.id === p.id ? 'border-blue-500 bg-blue-50 shadow-md ring-1 ring-blue-500' : 'hover:bg-slate-50')}
+                        >
+                          <h4 className="font-bold text-slate-800">{p.name}</h4>
+                          <p className="text-sm text-slate-600 mt-1">{p.description}</p>
                         </div>
-                        <input 
-                          type="range" 
-                          min="1" max="10" 
-                          value={customFactors[factor]}
-                          onChange={(e) => handleFactorChange(factor, e.target.value)}
-                          className="w-full accent-blue-600"
-                        />
-                      </div>
-                    ))}
-                    
-                    <button 
-                      onClick={startSession}
-                      disabled={loading}
-                      className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition disabled:opacity-50"
-                    >
-                      {loading ? 'Starting...' : 'Start Session'}
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-gray-500">Select a persona first.</p>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-slate-700 border-b pb-2">2. Customize Starting State</h3>
+                  {selectedPersona && customFactors ? (
+                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-inner space-y-5">
+                      {Object.keys(customFactors).map(factor => (
+                        <div key={factor} className="flex flex-col gap-2">
+                          <div className="flex justify-between text-sm font-bold text-slate-700 capitalize">
+                            <span>{factor}</span>
+                            <span className="bg-white px-2 py-0.5 rounded shadow-sm">{customFactors[factor]}/10</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="1" max="10" 
+                            value={customFactors[factor]}
+                            onChange={(e) => handleFactorChange(factor, e.target.value)}
+                            className="w-full accent-blue-600"
+                          />
+                        </div>
+                      ))}
+                      
+                      <button 
+                        onClick={startSession}
+                        disabled={loading}
+                        className="w-full mt-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-lg shadow-lg transition disabled:opacity-50"
+                      >
+                        {loading ? 'Generating Customer...' : 'Start Session'}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-slate-500 italic">Select a persona first.</p>
+                  )}
+                </div>
               </div>
+           </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex gap-4 overflow-hidden">
+          
+          {/* CRM Dashboard Sidebar */}
+          <div className="w-80 bg-white rounded-xl shadow-lg flex flex-col shrink-0 border border-slate-200">
+            <div className="bg-slate-100 p-4 border-b border-slate-200 rounded-t-xl">
+              <h2 className="font-black text-slate-700 flex items-center gap-2">
+                <span className="text-blue-600">📊</span> CRM Dashboard
+              </h2>
+            </div>
+            
+            <div className="p-5 flex-1 overflow-y-auto space-y-6">
+              {crmData ? (
+                Object.entries(crmData).map(([key, value]) => (
+                  <div key={key} className="flex flex-col gap-1 border-b border-slate-100 pb-3 last:border-0">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    <span className="text-slate-800 font-semibold">{value}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-slate-400 italic">No CRM data available.</div>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Factors Dashboard */}
-            <div className="bg-slate-50 border-b px-4 py-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-slate-700">{selectedPersona.name}</span>
-                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Live Emotional State</span>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 bg-white rounded-xl shadow-lg flex flex-col overflow-hidden border border-slate-200 relative">
+            
+            {/* Factors Top Bar */}
+            <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 shrink-0 shadow-sm z-10">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-black text-slate-800 text-lg">{selectedPersona.name}</span>
+                <span className="text-[10px] text-white bg-slate-800 px-2 py-1 rounded uppercase tracking-widest font-bold">Live Emotional State</span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-5 gap-3">
                 {Object.keys(currentFactors).map(factor => (
-                  <div key={factor} className="flex flex-col gap-1 bg-white p-2 rounded shadow-sm border border-gray-100">
-                    <div className="flex justify-between text-xs font-semibold text-gray-600 capitalize">
+                  <div key={factor} className="flex flex-col gap-1.5 bg-white p-2.5 rounded-lg shadow-sm border border-slate-100">
+                    <div className="flex justify-between text-[11px] font-black text-slate-500 capitalize tracking-wide">
                       <span>{factor}</span>
                       <span>{currentFactors[factor]}/10</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className={'h-full transition-all duration-1000 ease-in-out ' + getFactorColor(factor, currentFactors[factor])}
+                        className={'h-full transition-all duration-1000 ease-out ' + getFactorColor(factor, currentFactors[factor])}
                         style={{ width: (currentFactors[factor] * 10) + '%' }}
                       />
                     </div>
@@ -443,41 +477,41 @@ function Chat({ user }) {
               </div>
             </div>
 
-            {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-slate-100/50">
+            {/* Chat History */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
               {messages.map((msg, idx) => (
                 <div 
                   key={idx} 
                   className={'flex flex-col ' + (msg.role === 'user' ? 'items-end' : 'items-start')}
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1.5">
                     {msg.role === 'user' && msg.inputMode === 'voice' && (
-                      <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        🎤 Voice
+                      <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-blue-200">
+                        🎤 Voice Match
                       </span>
                     )}
                   </div>
                   <div 
-                    className={'max-w-[80%] rounded-2xl px-5 py-3 shadow-sm ' + (
+                    className={'max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm text-[15px] ' + (
                       msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-tr-none' 
-                        : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'
+                        ? 'bg-blue-600 text-white rounded-tr-sm' 
+                        : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm'
                     )}
                   >
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                   </div>
                   
-                  {/* Show classifier badge and factor deltas for assistant messages */}
+                  {/* Classifier & Deltas Badge */}
                   {msg.role === 'assistant' && msg.category && msg.category !== 'initial' && (
-                    <div className="mt-2 text-xs bg-white border rounded shadow-sm max-w-[80%] overflow-hidden">
-                      <div className="bg-slate-100 px-3 py-1 border-b font-medium text-slate-600 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                        Agent behavior classified as: <span className="font-bold text-indigo-700 uppercase tracking-wide">{msg.category}</span>
+                    <div className="mt-2 text-xs bg-white border border-slate-200 rounded-lg shadow-sm max-w-[75%] overflow-hidden">
+                      <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-100 font-semibold text-slate-500 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-sm"></span>
+                        Behavior logic: <span className="font-black text-indigo-700 uppercase tracking-wider">{msg.category}</span>
                       </div>
                       {msg.deltas && Object.keys(msg.deltas).length > 0 && (
-                        <div className="px-3 py-2 flex flex-wrap gap-3 text-[11px] uppercase tracking-wide">
+                        <div className="px-3 py-2 flex flex-wrap gap-3 text-[11px] uppercase tracking-wider">
                           {Object.values(msg.deltas).every(v => v === 0) ? (
-                            <span className="text-slate-400 italic normal-case tracking-normal">Max/Min limits reached (or neutral interaction). No state change.</span>
+                            <span className="text-slate-400 italic normal-case tracking-normal">Max/Min limits reached (or neutral). No effect.</span>
                           ) : (
                             Object.entries(msg.deltas).map(([f, change], i) => {
                               if (change === 0) return null;
@@ -485,7 +519,7 @@ function Chat({ user }) {
                               const isFrustration = f === 'frustration';
                               const isGood = isFrustration ? !isPositive : isPositive;
                               return (
-                                <div key={i} className={'flex items-center gap-1 font-bold ' + (isGood ? 'text-emerald-600' : 'text-rose-600')}>
+                                <div key={i} className={'flex items-center gap-1 font-black ' + (isGood ? 'text-emerald-600' : 'text-rose-500')}>
                                   <span className="capitalize">{f}</span>
                                   <span>{formatDelta(change)}</span>
                                 </div>
@@ -501,27 +535,28 @@ function Chat({ user }) {
               
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-5 py-3 shadow-sm flex gap-1 items-center h-12">
-                    <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full"></span>
-                    <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="animate-bounce h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.4s' }}></span>
+                  <div className="bg-white border border-slate-200 text-slate-400 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex gap-1.5 items-center">
+                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full"></span>
+                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full" style={{ animationDelay: '0.4s' }}></span>
                   </div>
                 </div>
               )}
               
               {error && (
-                <div className="bg-red-50 text-red-500 p-3 rounded-lg text-center text-sm border border-red-200 shadow-sm mx-auto max-w-lg">
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center text-sm font-medium border border-red-200 shadow-sm mx-auto max-w-lg">
                   {error}
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.02)] relative">
-              {/* Floating Auto Message Indicator */}
+            {/* Input Bar */}
+            <div className="p-4 bg-white border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.02)] relative shrink-0">
+              
+              {/* Auto Message Pill */}
               {autoMessage && (
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[11px] font-bold px-4 py-2 rounded-full shadow-lg animate-bounce tracking-wide">
                   {autoMessage}
                 </div>
               )}
@@ -534,31 +569,31 @@ function Chat({ user }) {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Type your reply to the customer..."
                     disabled={loading}
-                    className="flex-1 px-5 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 transition shadow-inner"
+                    className="flex-1 px-5 py-3.5 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 transition shadow-inner"
                   />
                   <button 
                     type="submit"
                     disabled={!input.trim() || loading}
-                    className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
+                    className="px-8 py-3.5 bg-blue-600 text-white font-black rounded-full hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:shadow-none transform active:scale-95"
                   >
                     Send
                   </button>
                 </form>
               ) : (
-                <div className="flex justify-center items-center h-[52px]">
+                <div className="flex justify-center items-center h-[54px]">
                   {!SpeechRecognition ? (
-                    <div className="text-red-500 font-medium">
+                    <div className="text-rose-500 font-bold bg-rose-50 px-6 py-2 rounded-full border border-rose-200">
                       Voice input is not supported in this browser. Please use Chat Mode.
                     </div>
                   ) : (
                     <button
                       onClick={toggleRecording}
                       disabled={loading || isSubmittingRef.current}
-                      className={'flex items-center gap-3 px-10 py-3 rounded-full font-bold text-white transition shadow-md ' + 
+                      className={'flex items-center gap-3 px-12 py-3.5 rounded-full font-black text-white transition-all shadow-md ' + 
                         (isRecording 
-                          ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                          : 'bg-emerald-600 hover:bg-emerald-700') + 
-                        ((loading || isSubmittingRef.current) ? ' opacity-50 cursor-not-allowed' : ' transform active:scale-95')}
+                          ? 'bg-rose-500 hover:bg-rose-600 animate-pulse shadow-rose-200' 
+                          : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200') + 
+                        ((loading || isSubmittingRef.current) ? ' opacity-50 cursor-not-allowed transform-none' : ' hover:-translate-y-0.5 active:scale-95')}
                     >
                       {isRecording ? (
                         <>
@@ -567,7 +602,7 @@ function Chat({ user }) {
                         </>
                       ) : (
                         <>
-                          <span>🎤</span>
+                          <span className="text-lg">🎤</span>
                           {loading ? 'Sending...' : 'Tap to Start Listening'}
                         </>
                       )}
@@ -577,8 +612,8 @@ function Chat({ user }) {
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
