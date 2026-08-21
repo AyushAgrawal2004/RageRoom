@@ -199,8 +199,18 @@ function App() {
         setIsSpeaking(false);
       }
     } catch (err) {
-      console.error('Failed to play TTS audio:', err);
+      console.error('Failed to play TTS audio:', err.response?.data || err.message);
       setIsSpeaking(false);
+      // Fallback: start recording immediately if TTS fails so session doesn't freeze
+      if (inputModeRef.current === 'voice' && !isRecording && SpeechRecognition) {
+        setTimeout(() => {
+          try {
+            recognitionRef.current.start();
+          } catch (e) {
+            if (e.name === 'InvalidStateError') setIsRecording(true);
+          }
+        }, 400);
+      }
     }
   };
 

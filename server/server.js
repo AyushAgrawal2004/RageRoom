@@ -245,9 +245,7 @@ app.post('/api/tts', async (req, res) => {
 
   try {
     const response = await axios.post('https://api.sarvam.ai/text-to-speech', {
-      inputs: [text], // Fallback for older spec
-      target_language_code: languageCode || 'hi-IN',
-      text: text, // New spec
+      text: text,
       model: "bulbul:v3",
       language_code: languageCode || "hi-IN",
       speaker: "shubh",
@@ -266,8 +264,9 @@ app.post('/api/tts', async (req, res) => {
       res.status(500).json({ error: 'No audio returned from Sarvam AI' });
     }
   } catch (error) {
-    console.error('Error calling Sarvam TTS:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to generate speech' });
+    const apiError = error.response?.data || error.message;
+    console.error('Error calling Sarvam TTS:', apiError);
+    res.status(500).json({ error: 'Failed to generate speech', details: apiError });
   }
 });
 
