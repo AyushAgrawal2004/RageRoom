@@ -10,8 +10,8 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('rageroom_token');
+    const storedUser = localStorage.getItem('rageroom_user');
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -19,8 +19,8 @@ function App() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('rageroom_token');
+    localStorage.removeItem('rageroom_user');
     setUser(null);
   };
 

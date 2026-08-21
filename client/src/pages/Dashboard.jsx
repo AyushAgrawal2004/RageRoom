@@ -10,7 +10,7 @@ function Dashboard({ user, logout }) {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('rageroom_token');
         const res = await axios.get('http://localhost:5005/api/sessions', {
           headers: { Authorization: `Bearer ${token}` }
         });

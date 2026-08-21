@@ -19,8 +19,8 @@ function Auth({ setUser }) {
     
     try {
       const res = await axios.post(`http://localhost:5005${endpoint}`, { username, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('rageroom_token', res.data.token);
+      localStorage.setItem('rageroom_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
       navigate('/dashboard');
     } catch (err) {
