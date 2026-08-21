@@ -4,7 +4,9 @@ const messageSchema = new mongoose.Schema({
   role: { type: String, enum: ['system', 'user', 'assistant'], required: true },
   content: { type: String, required: true },
   factors: { type: Map, of: Number },
-  factor_changes: { type: Map, of: String },
+  category: { type: String },
+  deltas: { type: Map, of: Number },
+  inputMode: { type: String, enum: ['chat', 'voice'], default: 'chat' },
   timestamp: { type: Date, default: Date.now }
 });
 

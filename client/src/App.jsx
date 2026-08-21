@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css'; 
 
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 function App() {
   const [personas, setPersonas] = useState([]);
   const [selectedPersona, setSelectedPersona] = useState(null);
@@ -10,14 +12,19 @@ function App() {
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
+  
+  // Input states
+  const [inputMode, setInputMode] = useState('chat'); // 'chat' or 'voice'
   const [input, setInput] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   
   const [currentFactors, setCurrentFactors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
-  // Fetch personas on load
   useEffect(() => {
     const fetchPersonas = async () => {
       try {
@@ -33,6 +40,31 @@ function App() {
       }
     };
     fetchPersonas();
+
+    // Initialize speech recognition if available
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setIsRecording(false);
+        // Automatically send the transcribed text
+        sendMessage(transcript, 'voice');
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsRecording(false);
+        setError('Microphone error: ' + event.error);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+    }
   }, []);
 
   const scrollToBottom = () => {
@@ -78,17 +110,42 @@ function App() {
     setMessages([]);
     setCurrentFactors({});
     window.speechSynthesis.cancel();
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
   };
 
-  const handleSend = async (e) => {
+  const toggleRecording = () => {
+    if (!SpeechRecognition) {
+      setError("Your browser does not support Speech Recognition. Please use Chrome or fall back to Chat Mode.");
+      return;
+    }
+    setError(null);
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Failed to start recording:", err);
+      }
+    }
+  };
+
+  const handleSendForm = (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
-
-    const userMsg = input.trim();
+    sendMessage(input.trim(), 'chat');
     setInput('');
+  };
+
+  const sendMessage = async (userMsg, modeUsed) => {
+    if (!userMsg) return;
     setError(null);
 
-    const newMessages = [...messages, { role: 'user', content: userMsg }];
+    const newMessages = [...messages, { role: 'user', content: userMsg, inputMode: modeUsed }];
     setMessages(newMessages);
     setLoading(true);
 
@@ -98,14 +155,25 @@ function App() {
         personaId: selectedPersona.id,
         currentFactors: currentFactors,
         conversationHistory: newMessages.slice(0, -1),
-        userMessage: userMsg
+        userMessage: userMsg,
+        inputMode: modeUsed
       });
 
       const aiReply = response.data.reply;
       const aiFactors = response.data.factors;
-      const aiChanges = response.data.factor_changes;
+      const aiCategory = response.data.category;
+      const aiDeltas = response.data.deltas;
 
-      setMessages(prev => [...prev, { role: 'assistant', content: aiReply, factors: aiFactors, factor_changes: aiChanges }]);
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: aiReply, 
+          factors: aiFactors, 
+          category: aiCategory,
+          deltas: aiDeltas 
+        }
+      ]);
       setCurrentFactors(aiFactors);
       speakText(aiReply);
     } catch (err) {
@@ -130,8 +198,6 @@ function App() {
   };
 
   const getFactorColor = (factor, value) => {
-    // Frustration: low=green, high=red
-    // Others (trust, patience, loyalty, satisfaction): low=red, high=green
     if (factor === 'frustration') {
       if (value >= 8) return 'bg-red-500';
       if (value >= 5) return 'bg-yellow-400';
@@ -143,6 +209,12 @@ function App() {
     }
   };
 
+  const formatDelta = (val) => {
+    if (val > 0) return '+' + val;
+    if (val < 0) return val.toString();
+    return '0';
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[90vh]">
@@ -150,24 +222,40 @@ function App() {
         {/* Header */}
         <header className="bg-slate-800 text-white p-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">Difficult Customer Simulator</h1>
-          {sessionActive && (
-            <button 
-              onClick={endSession}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-semibold transition"
-            >
-              End Session
-            </button>
-          )}
+          
+          <div className="flex items-center gap-4">
+            <div className="flex bg-slate-700 rounded-lg p-1">
+              <button 
+                onClick={() => setInputMode('chat')}
+                className={'px-3 py-1 text-sm rounded-md transition ' + (inputMode === 'chat' ? 'bg-blue-600 text-white font-semibold shadow' : 'text-slate-300 hover:text-white')}
+              >
+                Chat Mode
+              </button>
+              <button 
+                onClick={() => setInputMode('voice')}
+                className={'px-3 py-1 text-sm rounded-md transition ' + (inputMode === 'voice' ? 'bg-blue-600 text-white font-semibold shadow' : 'text-slate-300 hover:text-white')}
+              >
+                Voice Mode
+              </button>
+            </div>
+
+            {sessionActive && (
+              <button 
+                onClick={endSession}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-semibold transition"
+              >
+                End Session
+              </button>
+            )}
+          </div>
         </header>
 
         {!sessionActive ? (
           <div className="flex-1 flex flex-col p-8 overflow-y-auto">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 text-center">Setup Training Scenario</h2>
-            
             {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left col: Persona List */}
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-gray-700 border-b pb-2">1. Choose Persona</h3>
                 {personas.length === 0 ? (
@@ -188,7 +276,6 @@ function App() {
                 )}
               </div>
 
-              {/* Right col: Custom Factors & Start */}
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-gray-700 border-b pb-2">2. Customize Starting State</h3>
                 {selectedPersona && customFactors ? (
@@ -240,7 +327,7 @@ function App() {
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div 
-                        className={'h-full transition-all duration-700 ease-out ' + getFactorColor(factor, currentFactors[factor])}
+                        className={'h-full transition-all duration-1000 ease-in-out ' + getFactorColor(factor, currentFactors[factor])}
                         style={{ width: (currentFactors[factor] * 10) + '%' }}
                       />
                     </div>
@@ -256,6 +343,13 @@ function App() {
                   key={idx} 
                   className={'flex flex-col ' + (msg.role === 'user' ? 'items-end' : 'items-start')}
                 >
+                  <div className="flex items-center gap-2 mb-1">
+                    {msg.role === 'user' && msg.inputMode === 'voice' && (
+                      <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        🎤 Voice
+                      </span>
+                    )}
+                  </div>
                   <div 
                     className={'max-w-[80%] rounded-2xl px-5 py-3 shadow-sm ' + (
                       msg.role === 'user' 
@@ -266,15 +360,33 @@ function App() {
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                   </div>
                   
-                  {/* Show factor changes if present */}
-                  {msg.role === 'assistant' && msg.factor_changes && Object.keys(msg.factor_changes).length > 0 && (
-                    <div className="mt-2 text-xs text-gray-500 bg-white/60 border rounded px-3 py-2 shadow-sm max-w-[80%]">
-                      <span className="font-semibold block mb-1">State Updates:</span>
-                      <ul className="space-y-1">
-                        {Object.entries(msg.factor_changes).map(([f, change], i) => (
-                          <li key={i}><span className="capitalize font-medium">{f}:</span> {change}</li>
-                        ))}
-                      </ul>
+                  {/* Show classifier badge and factor deltas for assistant messages */}
+                  {msg.role === 'assistant' && msg.category && msg.category !== 'initial' && (
+                    <div className="mt-2 text-xs bg-white border rounded shadow-sm max-w-[80%] overflow-hidden">
+                      <div className="bg-slate-100 px-3 py-1 border-b font-medium text-slate-600 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        Agent behavior classified as: <span className="font-bold text-indigo-700 uppercase tracking-wide">{msg.category}</span>
+                      </div>
+                      {msg.deltas && Object.keys(msg.deltas).length > 0 && (
+                        <div className="px-3 py-2 flex flex-wrap gap-3 text-[11px] uppercase tracking-wide">
+                          {Object.values(msg.deltas).every(v => v === 0) ? (
+                            <span className="text-slate-400 italic normal-case tracking-normal">Max/Min limits reached (or neutral interaction). No state change.</span>
+                          ) : (
+                            Object.entries(msg.deltas).map(([f, change], i) => {
+                              if (change === 0) return null;
+                              const isPositive = change > 0;
+                              const isFrustration = f === 'frustration';
+                              const isGood = isFrustration ? !isPositive : isPositive;
+                              return (
+                                <div key={i} className={'flex items-center gap-1 font-bold ' + (isGood ? 'text-emerald-600' : 'text-rose-600')}>
+                                  <span className="capitalize">{f}</span>
+                                  <span>{formatDelta(change)}</span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -299,23 +411,57 @@ function App() {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="p-4 bg-white border-t flex gap-3 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
-              <input 
-                type="text" 
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your reply to the customer..."
-                disabled={loading}
-                className="flex-1 px-5 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 transition shadow-inner"
-              />
-              <button 
-                type="submit"
-                disabled={!input.trim() || loading}
-                className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
-              >
-                Send
-              </button>
-            </form>
+            <div className="p-4 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+              {inputMode === 'chat' ? (
+                <form onSubmit={handleSendForm} className="flex gap-3">
+                  <input 
+                    type="text" 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your reply to the customer..."
+                    disabled={loading}
+                    className="flex-1 px-5 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 transition shadow-inner"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!input.trim() || loading}
+                    className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
+                  >
+                    Send
+                  </button>
+                </form>
+              ) : (
+                <div className="flex justify-center items-center h-[52px]">
+                  {!SpeechRecognition ? (
+                    <div className="text-red-500 font-medium">
+                      Voice input is not supported in this browser. Please use Chat Mode.
+                    </div>
+                  ) : (
+                    <button
+                      onClick={toggleRecording}
+                      disabled={loading}
+                      className={'flex items-center gap-3 px-10 py-3 rounded-full font-bold text-white transition shadow-md ' + 
+                        (isRecording 
+                          ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                          : 'bg-emerald-600 hover:bg-emerald-700') + 
+                        (loading ? ' opacity-50 cursor-not-allowed' : ' transform active:scale-95')}
+                    >
+                      {isRecording ? (
+                        <>
+                          <span className="w-3 h-3 bg-white rounded-full"></span>
+                          Listening... (Click to Stop)
+                        </>
+                      ) : (
+                        <>
+                          <span>🎤</span>
+                          Start Recording
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

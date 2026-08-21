@@ -7,6 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 
 const Conversation = require('./models/Conversation');
 const personas = require('./data/personas');
+const { classifyAgentMessage } = require('./services/classifier');
+const { factorMatrix, decayConfig } = require('./data/factorMatrix');
 
 dotenv.config();
 
@@ -33,12 +35,11 @@ app.get('/api/personas', (req, res) => {
   res.json(personas);
 });
 
-// POST /api/start - start a new session with selected persona and factors
+// POST /api/start - start a new session
 app.post('/api/start', async (req, res) => {
   try {
     const { personaId, customFactors } = req.body;
     
-    // Find persona or use a fallback
     const persona = personas.find(p => p.id === personaId) || personas[0];
     const startingFactors = customFactors || persona.startingFactors;
     
@@ -47,7 +48,8 @@ app.post('/api/start', async (req, res) => {
       role: 'assistant',
       content: persona.initialMessage,
       factors: startingFactors,
-      factor_changes: {}, // no changes on first message
+      category: 'initial',
+      deltas: {},
       timestamp: new Date()
     };
     
@@ -71,9 +73,12 @@ app.post('/api/start', async (req, res) => {
   }
 });
 
-// POST /api/chat - process human response and get AI reply
+// Helper to clamp values between 1 and 10
+const clamp = (val) => Math.max(1, Math.min(10, val));
+
+// POST /api/chat - process human response
 app.post('/api/chat', async (req, res) => {
-  const { sessionId, conversationHistory, userMessage, personaId, currentFactors } = req.body;
+  const { sessionId, conversationHistory, userMessage, personaId, currentFactors, inputMode } = req.body;
 
   if (!sessionId || !userMessage) {
     return res.status(400).json({ error: 'sessionId and userMessage are required' });
@@ -84,51 +89,72 @@ app.post('/api/chat', async (req, res) => {
     try {
       await Conversation.findOneAndUpdate(
         { sessionId },
-        { $push: { messages: { role: 'user', content: userMessage, timestamp: new Date() } } },
+        { $push: { messages: { role: 'user', content: userMessage, inputMode: inputMode || 'chat', timestamp: new Date() } } },
         { upsert: true }
       );
     } catch (dbErr) {
       console.warn('Could not save user message to DB:', dbErr.message);
     }
 
+    // 1. Classify agent message
+    const category = await classifyAgentMessage(openai, userMessage);
+    
+    // 2. Get deterministic deltas
+    const deltas = factorMatrix[category] || factorMatrix['neutral'];
+    
+    // 3. Check for decay (e.g. every N turns of the user)
+    // We can estimate turns by looking at conversationHistory.
+    const userTurnCount = (conversationHistory || []).filter(m => m.role === 'user').length + 1; // +1 for current message
+    
+    let applyDecay = false;
+    if (userTurnCount > 0 && userTurnCount % decayConfig.turnsPerDecay === 0) {
+      applyDecay = true;
+    }
+
+    // 4. Calculate new factors
+    const newFactors = {};
+    const finalDeltas = {}; // to send to frontend showing exactly what changed
+
+    for (const factor of Object.keys(currentFactors)) {
+      let change = deltas[factor] || 0;
+      if (applyDecay && decayConfig.deltas[factor]) {
+        change += decayConfig.deltas[factor];
+      }
+      
+      const newVal = clamp(currentFactors[factor] + change);
+      newFactors[factor] = newVal;
+      
+      // Calculate actual delta (since clamping might have restricted it)
+      finalDeltas[factor] = newVal - currentFactors[factor];
+    }
+
     const persona = personas.find(p => p.id === personaId) || personas[0];
     
+    // 5. Build prompt for AI (only asks for 'reply')
     const SYSTEM_PROMPT = `You are a customer interacting with a support agent.
 Role: ${persona.name}
 Backstory/Situation: ${persona.backstory}
 
-Your current emotional state is represented by these factors (1-10 scale):
-${JSON.stringify(currentFactors || persona.startingFactors)}
+Your CURRENT emotional state is:
+- frustration: ${newFactors.frustration}/10
+- patience: ${newFactors.patience}/10
+- trust: ${newFactors.trust}/10
+- loyalty: ${newFactors.loyalty}/10
+- satisfaction: ${newFactors.satisfaction}/10
+
+Your reply's tone MUST genuinely reflect this state. 
+- If frustration is 8+ and patience is 2 or below, you are on the verge of ending the conversation or demanding a manager.
+- If trust is low, be skeptical of any promises made.
+- If satisfaction and trust are both high, you may start being noticeably more cooperative and even apologize for your earlier tone.
 
 Instructions:
-1. Respond in character to the agent's last message.
-2. Update EACH factor based on what the human agent just said/did.
-   - frustration rises when the agent is dismissive, robotic, or unhelpful. It falls when they provide clear solutions and empathy.
-   - patience drops when the agent takes too long, gives runarounds, or asks for info you already provided. It rises if they are fast and direct.
-   - trust falls when promises are vague or contradict earlier statements. It rises when they take ownership and explain clearly.
-   - loyalty stays high even under frustration if the agent is respectful, but drops sharply if the agent is rude or unhelpful.
-   - satisfaction is an overall metric of how happy you are with the current interaction.
-3. Provide a short reason for why EACH factor changed (or state if it remained the same).
-4. Always reply in this EXACT JSON format:
+1. Respond in character to the agent's latest message based on your backstory and the new emotional state.
+2. Output ONLY JSON in this exact format:
 {
-  "reply": "<your in-character response>",
-  "factors": {
-    "frustration": <1-10>,
-    "patience": <1-10>,
-    "trust": <1-10>,
-    "loyalty": <1-10>,
-    "satisfaction": <1-10>
-  },
-  "factor_changes": {
-    "frustration": "<+X/-Y — short reason>",
-    "patience": "<+X/-Y — short reason>",
-    "trust": "<+X/-Y — short reason>",
-    "loyalty": "<+X/-Y — short reason>",
-    "satisfaction": "<+X/-Y — short reason>"
-  }
+  "reply": "<your in-character response text>"
 }`;
 
-    // Format history for the AI
+    // Format history
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...(conversationHistory || []).map(msg => ({
@@ -156,35 +182,33 @@ Instructions:
         aiMessageContent = response.choices[0].message.content;
         parsedResponse = JSON.parse(aiMessageContent);
 
-        if (!parsedResponse.reply || !parsedResponse.factors) {
-          throw new Error('Missing reply or factors in JSON');
+        if (!parsedResponse.reply) {
+          throw new Error('Missing reply field in JSON');
         }
-        success = true; // Parse succeeded and validation passed
+        success = true;
       } catch (e) {
         console.error(`Attempt ${retryCount + 1} failed to parse Groq response:`, e.message);
         retryCount++;
       }
     }
 
-    // Fallback if still failed after retries
     if (!success) {
       console.warn('Falling back to safe default due to JSON parse failure.');
       parsedResponse = {
-        reply: "*The customer seems too upset to respond coherently right now. Try a different approach.*",
-        factors: currentFactors || persona.startingFactors,
-        factor_changes: { "system": "Error processing emotional update. Factors remained unchanged." }
+        reply: "*The customer seems too upset to respond coherently right now. Try a different approach.*"
       };
     }
 
     const aiMessage = {
       role: 'assistant',
       content: parsedResponse.reply,
-      factors: parsedResponse.factors,
-      factor_changes: parsedResponse.factor_changes || {},
+      factors: newFactors,
+      category,
+      deltas: finalDeltas,
       timestamp: new Date()
     };
 
-    // Save AI response to DB (optional)
+    // Save AI response to DB
     try {
       await Conversation.findOneAndUpdate(
         { sessionId },
@@ -196,8 +220,9 @@ Instructions:
 
     res.json({
       reply: parsedResponse.reply,
-      factors: parsedResponse.factors,
-      factor_changes: parsedResponse.factor_changes
+      factors: newFactors,
+      category,
+      deltas: finalDeltas
     });
 
   } catch (error) {
