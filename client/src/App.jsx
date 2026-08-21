@@ -47,6 +47,15 @@ function App() {
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
+    }
+  }, []);
+
+  // Update speech recognition callbacks so they always have the latest state closures
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.onstart = () => {
+        setIsRecording(true);
+      };
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -58,14 +67,17 @@ function App() {
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsRecording(false);
-        setError('Microphone error: ' + event.error);
+        // Don't show scary errors for just being quiet
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          setError('Microphone error: ' + event.error);
+        }
       };
       
       recognitionRef.current.onend = () => {
         setIsRecording(false);
       };
     }
-  }, []);
+  }); // Runs on every render to ensure callbacks have latest state
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,9 +139,12 @@ function App() {
     } else {
       try {
         recognitionRef.current.start();
-        setIsRecording(true);
       } catch (err) {
         console.error("Failed to start recording:", err);
+        if (err.name === 'InvalidStateError') {
+          // Already started, sync state
+          setIsRecording(true);
+        }
       }
     }
   };
