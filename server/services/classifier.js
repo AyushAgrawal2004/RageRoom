@@ -8,6 +8,7 @@ const CATEGORIES = [
   'proper_escalation',
   'rude_but_correct',
   'slow_or_silent',
+  'placed_on_hold',
   'repetitive_script',
   'neutral'
 ];
@@ -22,6 +23,7 @@ const CLASSIFIER_SYSTEM_PROMPT = `Classify the following support agent message i
 - proper_escalation
 - rude_but_correct
 - slow_or_silent
+- placed_on_hold (the agent asks the customer to wait, hold, or says they are checking with someone else)
 - repetitive_script (the agent repeats a question the customer just answered, ignores what they just said, or reads from a boilerplate script without listening)
 - neutral (general conversation, no strong sentiment)
 
