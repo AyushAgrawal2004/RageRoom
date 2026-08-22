@@ -16,6 +16,46 @@ const AppIcon = ({ bg, icon: Icon, delay, size = "w-20 h-20", top, left, right, 
   </motion.div>
 );
 
+// Horizontal Gallery Phone Component
+const GalleryPhone = ({ title, bg, customerName, emoji, level, messages }) => (
+  <div className="flex flex-col gap-6 shrink-0 snap-center w-[280px]">
+    <h4 className="text-center font-bold text-slate-900 text-[15px]">{title}</h4>
+    <div className={`${bg} rounded-[40px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border-[8px] border-[#18181B] h-[580px] flex flex-col overflow-hidden relative group hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-shadow duration-300`}>
+      <div className="absolute top-0 inset-x-0 h-6 flex justify-center items-start bg-[#18181B] rounded-b-[14px] w-[120px] mx-auto z-10"></div>
+      
+      {/* Header */}
+      <div className="flex items-center gap-3 mt-5 mb-5 bg-white p-3 rounded-2xl shadow-sm border border-slate-100 relative z-0">
+        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-xl">{emoji}</div>
+        <div>
+          <div className="font-bold text-slate-900 text-sm leading-tight">{customerName}</div>
+          <div className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{level}</div>
+        </div>
+      </div>
+      
+      {/* Messages */}
+      <div className="flex-1 flex flex-col gap-3 overflow-hidden relative z-0">
+        {messages.map((m, i) => (
+           m.type === 'system' ? (
+             <div key={i} className="self-center bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full my-2">
+               {m.text}
+             </div>
+           ) : (
+             <div key={i} className={`max-w-[90%] p-3.5 rounded-[18px] text-[13px] font-medium leading-snug ${
+               m.isBot ? 'self-end bg-indigo-600 text-white rounded-tr-sm shadow-md' : 'self-start bg-white text-slate-800 rounded-tl-sm shadow-sm border border-slate-100'
+             }`}>
+               {m.text}
+             </div>
+           )
+        ))}
+      </div>
+      
+      <div className="h-12 w-full bg-white mt-auto rounded-full shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex items-center px-4 gap-3 border border-slate-100">
+        <div className="w-full h-3 bg-slate-100 rounded-full"></div>
+      </div>
+    </div>
+  </div>
+);
+
 function Landing({ user }) {
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -75,7 +115,7 @@ function Landing({ user }) {
       </nav>
 
       {/* Hero Section - Mobbin Exact Match */}
-      <section className="relative pt-[20vh] pb-[15vh] overflow-hidden flex flex-col items-center justify-center min-h-[95vh] bg-white">
+      <section className="relative pt-[20vh] pb-[10vh] overflow-hidden flex flex-col items-center justify-center min-h-[85vh] bg-white">
         
         {/* Floating App Icons (Mimicking Netflix, Airbnb, Twitch etc.) */}
         <div className="absolute inset-0 pointer-events-none max-w-[1400px] mx-auto">
@@ -99,7 +139,7 @@ function Landing({ user }) {
         </div>
 
         {/* Center Content */}
-        <div className="text-center z-10 max-w-4xl animate-slide-up flex flex-col items-center">
+        <div className="text-center z-10 max-w-4xl animate-slide-up flex flex-col items-center mt-8">
           <h3 className="font-bold text-slate-800 text-[22px] tracking-tight mb-2">A growing library of</h3>
           <h1 className="text-[80px] md:text-[110px] font-bold leading-[1] tracking-[-0.04em] text-[#111111] mb-8">
             10,000+ tickets
@@ -118,8 +158,105 @@ function Landing({ user }) {
         </div>
       </section>
 
+      {/* NEW: Mobbin Pattern Gallery Section */}
+      <section className="py-24 bg-white overflow-hidden border-t border-slate-100">
+        <div className="text-center max-w-3xl mx-auto px-6 mb-16">
+          <h2 className="text-[48px] md:text-[64px] font-bold leading-[1.05] tracking-[-0.03em] text-[#111111] mb-8">
+            Find scenarios<br/>in seconds.
+          </h2>
+          <div className="flex flex-wrap justify-center gap-2 bg-slate-50 p-2 rounded-full w-max mx-auto shadow-sm border border-slate-100">
+             <span className="px-5 py-2.5 bg-white shadow-sm rounded-full text-sm font-semibold text-slate-900 cursor-pointer">Irate Customers</span>
+             <span className="px-5 py-2.5 rounded-full text-sm font-semibold text-slate-500 cursor-pointer hover:text-slate-800 transition-colors">Refund Denied</span>
+             <span className="px-5 py-2.5 rounded-full text-sm font-semibold text-slate-500 cursor-pointer hover:text-slate-800 transition-colors">Account Locked</span>
+             <span className="px-5 py-2.5 rounded-full text-sm font-semibold text-slate-500 cursor-pointer hover:text-slate-800 transition-colors">B2B Outage</span>
+          </div>
+        </div>
+        
+        {/* Horizontal Scrolling Gallery */}
+        <div className="flex gap-8 px-[10vw] overflow-x-auto pb-12 pt-4 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+           
+           <GalleryPhone 
+             title="Refund Denied"
+             bg="bg-slate-50"
+             customerName="John D."
+             emoji="🤬"
+             level="Level 8 Irate"
+             messages={[
+               { text: "I demanded a refund 3 days ago! Where is my money?!", isBot: false },
+               { text: "I'm so sorry, John. Refunds take 5-7 business days to process.", isBot: true },
+               { text: "Unacceptable! I am reporting you to the BBB right now.", isBot: false },
+               { type: "system", text: "Frustration +15" },
+               { text: "Let me waive your cancellation fee to help make up for the wait.", isBot: true },
+               { type: "system", text: "De-escalation +20" },
+             ]}
+           />
+
+           <GalleryPhone 
+             title="Account Locked"
+             bg="bg-orange-50"
+             customerName="Sarah M."
+             emoji="😤"
+             level="Level 6 Frustrated"
+             messages={[
+               { text: "My account is locked and I have a flight in 2 hours!!!", isBot: false },
+               { text: "I see the security hold, Sarah. Give me one moment.", isBot: true },
+               { type: "system", text: "Patience -10" },
+               { text: "I don't have a moment! Fix it or I miss my flight!", isBot: false },
+               { text: "I have overridden the lock. You are good to go.", isBot: true },
+               { text: "Oh thank god. Finally.", isBot: false },
+             ]}
+           />
+
+           <GalleryPhone 
+             title="Technical Outage"
+             bg="bg-indigo-50"
+             customerName="CTO Kevin"
+             emoji="🔥"
+             level="Level 10 Furious"
+             messages={[
+               { text: "Your servers are down! We are losing thousands per minute!", isBot: false },
+               { text: "Our engineers are investigating a DNS issue right now.", isBot: true },
+               { text: "Investigating?! Give me an ETA right now or we cancel our contract.", isBot: false },
+               { type: "system", text: "Escalation Warning" },
+               { text: "I will personally call you in 5 minutes with the exact ETA.", isBot: true },
+             ]}
+           />
+
+           <GalleryPhone 
+             title="Shipping Delay"
+             bg="bg-rose-50"
+             customerName="Karen W."
+             emoji="🗣️"
+             level="Level 9 Irate"
+             messages={[
+               { text: "It was supposed to be here by Christmas! You ruined it!", isBot: false },
+               { text: "I sincerely apologize. Weather delayed the logistics hub.", isBot: true },
+               { text: "I don't care about the weather! I want to speak to a manager!", isBot: false },
+               { text: "I am a manager. I am fully refunding the order and giving you a $100 credit.", isBot: true },
+               { type: "system", text: "Empathy +30" },
+             ]}
+           />
+
+           <GalleryPhone 
+             title="Banned User"
+             bg="bg-slate-100"
+             customerName="GamerPro99"
+             emoji="☠️"
+             level="Level 10 Toxic"
+             messages={[
+               { text: "UNBAN ME NOW YOU SCAMMERS", isBot: false },
+               { text: "Your account was suspended for violating TOS.", isBot: true },
+               { text: "I DID NOTHING WRONG. I WILL SUE YOU GHOST DEV", isBot: false },
+               { text: "We have chat logs proving abusive behavior. The ban is permanent.", isBot: true },
+               { type: "system", text: "Firmness +25" },
+             ]}
+           />
+           
+        </div>
+      </section>
+
       {/* Scrollytelling Section (Mobbin Style) */}
-      <section ref={containerRef} className="h-[300vh] relative bg-white">
+      <section ref={containerRef} className="h-[300vh] relative bg-white border-t border-slate-100">
         <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
           
           <div className="w-full max-w-[1200px] mx-auto px-6 grid grid-cols-2 gap-12 items-center">
