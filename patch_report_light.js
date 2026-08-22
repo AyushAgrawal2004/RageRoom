@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const newReport = `import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, ShieldCheck, Zap, Activity, BrainCircuit, Heart, BarChart2, Star, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -95,7 +97,7 @@ function Report() {
                     <span className={getScoreColor(report.overallScore, 100)}>{report.overallScore}</span>
                     <span className="text-2xl text-slate-300 font-bold ml-1">/100</span>
                   </div>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm ${getBadgeColor(report.overallScore)}`}>
+                  <div className={\`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm \${getBadgeColor(report.overallScore)}\`}>
                     {getIcon(report.overallScore)}
                   </div>
                 </div>
@@ -167,7 +169,7 @@ function MetricCard({ icon, title, score, color }) {
         {title}
       </div>
       <div className="flex items-baseline">
-        <div className={`text-4xl font-black ${color}`}>{score}</div>
+        <div className={\`text-4xl font-black \${color}\`}>{score}</div>
         <div className="text-lg font-bold text-slate-300 ml-1">/10</div>
       </div>
     </div>
@@ -175,3 +177,7 @@ function MetricCard({ icon, title, score, color }) {
 }
 
 export default Report;
+`;
+
+fs.writeFileSync('client/src/pages/Report.jsx', newReport);
+console.log('Patched Report UI to light theme');
