@@ -205,7 +205,13 @@ function Session({ user }) {
         crmData: crmData
       });
 
-      const assistantMsg = response.data;
+      const assistantMsg = {
+        role: 'assistant',
+        content: response.data.reply,
+        factors: response.data.factors,
+        category: response.data.category,
+        deltas: response.data.deltas
+      };
       setMessages([...newMessages, assistantMsg]);
       setCurrentFactors(assistantMsg.factors);
       
