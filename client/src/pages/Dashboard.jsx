@@ -64,14 +64,8 @@ function Dashboard({ user, logout }) {
             <Trophy size={18} />
             Leaderboard
           </div>
-          <div className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
-            <BarChart3 size={18} />
-            Analytics <span className="ml-auto text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded-full text-slate-400">PRO</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
-            <Settings size={18} />
-            Settings
-          </div>
+          
+          
         </nav>
         
         {/* User Profile */}
