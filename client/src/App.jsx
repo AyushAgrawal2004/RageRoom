@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -31,19 +32,23 @@ function App() {
       <Routes>
         <Route 
           path="/" 
+          element={<Landing user={user} />} 
+        />
+        <Route 
+          path="/auth" 
           element={!user ? <Auth setUser={setUser} /> : <Navigate to="/dashboard" />} 
         />
         <Route 
           path="/dashboard" 
-          element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/" />} 
+          element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/chat" 
-          element={user ? <Chat user={user} /> : <Navigate to="/" />} 
+          element={user ? <Chat user={user} /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/report/:sessionId" 
-          element={user ? <Report /> : <Navigate to="/" />} 
+          element={user ? <Report /> : <Navigate to="/auth" />} 
         />
       </Routes>
     </Router>
