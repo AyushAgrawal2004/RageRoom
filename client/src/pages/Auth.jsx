@@ -150,7 +150,7 @@ function Auth({ setUser }) {
     setLoading(true);
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const res = await axios.post(`http://localhost:5005${endpoint}`, { username, password });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}${endpoint}`, { username, password });
       
       localStorage.setItem('rageroom_token', res.data.token);
       localStorage.setItem('rageroom_user', JSON.stringify(res.data.user));
