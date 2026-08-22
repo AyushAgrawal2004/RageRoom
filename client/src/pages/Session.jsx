@@ -273,13 +273,14 @@ function Session({ user }) {
         
         const now = Date.now();
         const timeSinceLastSpeech = now - lastSpeechTimestamp.current;
-        const currentTranscript = transcriptRef.current.trim();
+        const currentTranscript = (transcriptRef.current + ' ' + (interimTranscriptRef.current || '')).trim();
         
         if (timeSinceLastSpeech > SILENCE_THRESHOLD && currentTranscript.length > 0) {
           isSubmittingRef.current = true;
           recognition.stop();
           sendMessage(currentTranscript, 'call');
           transcriptRef.current = '';
+          interimTranscriptRef.current = '';
         }
       }, 500);
     };
@@ -308,7 +309,7 @@ function Session({ user }) {
       
       if (finalTranscriptChunk) {
         transcriptRef.current += finalTranscriptChunk;
-        interimTranscriptRef.current = ''; // clear interim since it became final
+        interimTranscriptRef.current = '';
       }
     };
 
