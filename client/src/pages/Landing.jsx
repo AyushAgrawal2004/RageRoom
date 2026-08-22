@@ -26,10 +26,15 @@ function Landing({ user }) {
     offset: ["start start", "end end"]
   });
 
-  // Storytelling Opacities (Crisp Mobbin Style)
-  const op1 = useTransform(scrollYProgress, [0, 0.15, 0.25], [1, 1, 0.2]);
-  const op2 = useTransform(scrollYProgress, [0.25, 0.35, 0.55, 0.65], [0.2, 1, 1, 0.2]);
-  const op3 = useTransform(scrollYProgress, [0.65, 0.75, 1], [0.2, 1, 1]);
+  // Storytelling Opacities (Crisp Mobbin Style) - must go to 0 to prevent overlap!
+  const op1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.25, 0.35, 0.60, 0.70], [0, 1, 1, 0]);
+  const op3 = useTransform(scrollYProgress, [0.60, 0.70, 1], [0, 1, 1]);
+
+  // Storytelling Y Translate for smooth sliding
+  const y1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [0, 0, -50]);
+  const y2 = useTransform(scrollYProgress, [0.25, 0.35, 0.60, 0.70], [50, 0, 0, -50]);
+  const y3 = useTransform(scrollYProgress, [0.60, 0.70, 1], [50, 0, 0]);
 
   return (
     <div className="bg-white min-h-screen font-sans selection:bg-indigo-100">
@@ -114,7 +119,7 @@ function Landing({ user }) {
             
             {/* Left: The fading text blocks */}
             <div className="relative h-[400px] flex items-center">
-              <motion.div style={{ opacity: op1 }} className="absolute inset-0 flex flex-col justify-center">
+              <motion.div style={{ opacity: op1, y: y1 }} className="absolute inset-0 flex flex-col justify-center">
                 <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-6">
                   <ShieldAlert size={24} />
                 </div>
@@ -126,7 +131,7 @@ function Landing({ user }) {
                 </p>
               </motion.div>
               
-              <motion.div style={{ opacity: op2 }} className="absolute inset-0 flex flex-col justify-center">
+              <motion.div style={{ opacity: op2, y: y2 }} className="absolute inset-0 flex flex-col justify-center">
                 <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-6">
                   <BrainCircuit size={24} />
                 </div>
@@ -138,7 +143,7 @@ function Landing({ user }) {
                 </p>
               </motion.div>
 
-              <motion.div style={{ opacity: op3 }} className="absolute inset-0 flex flex-col justify-center">
+              <motion.div style={{ opacity: op3, y: y3 }} className="absolute inset-0 flex flex-col justify-center">
                 <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mb-6">
                   <Award size={24} />
                 </div>
