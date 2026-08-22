@@ -26,6 +26,8 @@ function Session({ user }) {
   const [inputMode, setInputMode] = useState(location.state?.mode || 'chat');
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const isRecordingRef = useRef(false);
+  useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
   const [autoMessage, setAutoMessage] = useState(null);
   
   const [currentFactors, setCurrentFactors] = useState({});
@@ -98,7 +100,7 @@ function Session({ user }) {
            return;
         }
         
-        if (inputModeRef.current === 'call' && !isRecording && SpeechRecognition) {
+        if (inputModeRef.current === 'call' && !isRecordingRef.current && SpeechRecognition) {
           setTimeout(() => {
             try {
               recognitionRef.current.start();
@@ -153,7 +155,7 @@ function Session({ user }) {
     }
 
     // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
-    if (isRecording && recognitionRef.current) {
+    if (isRecordingRef.current && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsRecording(false);
     }
@@ -212,7 +214,7 @@ function Session({ user }) {
     setError(null);
     
     // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
-    if (isRecording && recognitionRef.current) {
+    if (isRecordingRef.current && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsRecording(false);
     }
@@ -281,7 +283,7 @@ function Session({ user }) {
       lastSpeechTimestamp.current = Date.now();
 
       totalSilenceTimeoutRef.current = setTimeout(() => {
-        if (isRecording && transcriptRef.current.trim() === '') {
+        if (isRecordingRef.current && transcriptRef.current.trim() === '') {
           setAutoMessage("Session paused. Take your time.");
           recognition.stop();
         }
