@@ -136,7 +136,7 @@ const MockAnalyticsScreen = () => (
   </MobileScreen>
 );
 
-function Auth({ setAuthToken }) {
+function Auth({ setUser }) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -152,9 +152,9 @@ function Auth({ setAuthToken }) {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       const res = await axios.post(`http://localhost:5005${endpoint}`, { username, password });
       
-      const token = res.data.token;
-      localStorage.setItem('rageroom_token', token);
-      setAuthToken(token);
+      localStorage.setItem('rageroom_token', res.data.token);
+      localStorage.setItem('rageroom_user', JSON.stringify(res.data.user));
+      setUser(res.data.user);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
