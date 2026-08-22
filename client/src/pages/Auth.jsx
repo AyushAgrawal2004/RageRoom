@@ -1,64 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Sparkles, BarChart3, MessageSquare, Headphones, ShieldCheck, Zap } from 'lucide-react';
+import { Zap, ShieldAlert, TrendingUp, Users, MessageSquare, Award, BrainCircuit, Activity } from 'lucide-react';
 
-const MockCard = ({ type }) => {
-  if (type === 'chart') {
-    return (
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E5E7EB] w-[240px] mb-6 flex-shrink-0">
-        <div className="flex justify-between items-center mb-4">
-          <div className="h-3 w-16 bg-gray-200 rounded-full"></div>
-          <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center">
-            <BarChart3 size={12} className="text-indigo-600" />
-          </div>
-        </div>
-        <div className="flex items-end gap-2 h-20 mt-2">
-          {[40, 70, 45, 90, 65, 80].map((h, i) => (
-            <div key={i} className="flex-1 bg-indigo-500 rounded-t-sm opacity-80" style={{ height: `${h}%` }}></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  
-  if (type === 'chat') {
-    return (
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E5E7EB] w-[240px] mb-6 flex-shrink-0">
-        <div className="flex gap-3 items-center mb-3">
-          <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
-            <Headphones size={14} className="text-emerald-600" />
-          </div>
-          <div className="space-y-1.5">
-            <div className="h-2.5 w-20 bg-gray-200 rounded-full"></div>
-            <div className="h-2 w-12 bg-gray-100 rounded-full"></div>
-          </div>
-        </div>
-        <div className="space-y-2 mt-4">
-          <div className="bg-gray-100 p-2.5 rounded-xl rounded-tl-sm w-3/4">
-            <div className="h-2 w-full bg-gray-300 rounded-full mb-1.5"></div>
-            <div className="h-2 w-2/3 bg-gray-300 rounded-full"></div>
-          </div>
-          <div className="bg-indigo-600 p-2.5 rounded-xl rounded-tr-sm w-3/4 ml-auto">
-            <div className="h-2 w-full bg-indigo-300 rounded-full mb-1.5"></div>
-            <div className="h-2 w-1/2 bg-indigo-300 rounded-full"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+const MockCard = ({ title, subtitle, icon: Icon, colorClass, bgClass }) => {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E5E7EB] w-[240px] mb-6 flex-shrink-0">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E7EB] w-[260px] mb-6 flex-shrink-0 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-4">
-        <div className="h-10 w-10 rounded-xl bg-rose-100 flex items-center justify-center">
-          <ShieldCheck size={20} className="text-rose-500" />
+        <div className={`h-12 w-12 rounded-xl ${bgClass} flex items-center justify-center`}>
+          <Icon size={24} className={colorClass} />
         </div>
-        <div className="h-4 w-12 bg-gray-100 rounded-full"></div>
       </div>
-      <div className="h-3 w-3/4 bg-gray-200 rounded-full mb-2 mt-6"></div>
-      <div className="h-3 w-1/2 bg-gray-200 rounded-full mb-4"></div>
-      <div className="h-10 w-full bg-slate-900 rounded-xl mt-4"></div>
+      <h3 className="font-bold text-[#111111] text-[16px] mb-1 leading-tight">{title}</h3>
+      <p className="text-[#6B6B6B] text-[13px] leading-relaxed">{subtitle}</p>
     </div>
   );
 };
@@ -90,17 +44,25 @@ function Auth({ setAuthToken }) {
     }
   };
 
-  // Generate lists of cards for the columns
-  const col1 = ['chart', 'chat', 'default', 'chat', 'chart', 'default'];
-  const col2 = ['default', 'chart', 'chat', 'default', 'chart', 'chat'];
-  const col3 = ['chat', 'default', 'chart', 'chat', 'default', 'chart'];
+  const cardsInfo = [
+    { title: "Master De-escalation", subtitle: "Practice calming down highly irate customers safely.", icon: ShieldAlert, colorClass: "text-rose-600", bgClass: "bg-rose-100" },
+    { title: "AI Behavior Judge", subtitle: "Get graded instantly on empathy and problem-solving.", icon: Award, colorClass: "text-indigo-600", bgClass: "bg-indigo-100" },
+    { title: "Realistic Roleplay", subtitle: "Powered by deep LLMs trained on actual support tickets.", icon: BrainCircuit, colorClass: "text-emerald-600", bgClass: "bg-emerald-100" },
+    { title: "Track Performance", subtitle: "Review your report cards and watch your metrics soar.", icon: TrendingUp, colorClass: "text-blue-600", bgClass: "bg-blue-100" },
+    { title: "Voice Mode", subtitle: "Use your real microphone to practice your vocal tone.", icon: Activity, colorClass: "text-amber-600", bgClass: "bg-amber-100" },
+    { title: "Infinite Scenarios", subtitle: "From broken blenders to missing software licenses.", icon: Users, colorClass: "text-purple-600", bgClass: "bg-purple-100" }
+  ];
+
+  const col1 = [cardsInfo[0], cardsInfo[1], cardsInfo[2]];
+  const col2 = [cardsInfo[3], cardsInfo[4], cardsInfo[5]];
+  const col3 = [cardsInfo[2], cardsInfo[5], cardsInfo[0]];
 
   return (
-    <div className="min-h-screen w-full flex bg-[#0A0A0A] overflow-hidden">
+    <div className="h-screen w-full flex bg-[#0A0A0A] overflow-hidden fixed inset-0">
       
       {/* Left Panel - Auth Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 relative z-10 bg-[#0A0A0A]">
-        <div className="max-w-md w-full mx-auto animate-slide-up">
+      <div className="w-full lg:w-1/2 h-full flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 relative z-10 bg-[#0A0A0A] overflow-y-auto">
+        <div className="max-w-md w-full mx-auto animate-slide-up py-12">
           <div className="flex items-center gap-2 mb-12">
              <div className="bg-white p-1.5 rounded-lg">
                <Zap size={24} fill="black" stroke="none" />
@@ -162,30 +124,30 @@ function Auth({ setAuthToken }) {
       </div>
 
       {/* Right Panel - Mobbin Floating Grid */}
-      <div className="hidden lg:block w-1/2 bg-[#F3F4F6] relative overflow-hidden flex items-center justify-center">
+      <div className="hidden lg:block w-1/2 h-full bg-[#F3F4F6] relative overflow-hidden flex items-center justify-center pointer-events-none">
         {/* Tilted container */}
         <div className="flex gap-6 transform -rotate-12 scale-110 h-[200vh]">
           
           {/* Column 1 (Scrolls Up) */}
           <div className="flex flex-col gap-6 animate-scroll-up pt-[100vh]">
-             {[...col1, ...col1, ...col1].map((type, i) => <MockCard key={i} type={type} />)}
+             {[...col1, ...col1, ...col1, ...col1].map((card, i) => <MockCard key={i} {...card} />)}
           </div>
           
           {/* Column 2 (Scrolls Down) */}
           <div className="flex flex-col gap-6 animate-scroll-down mt-[-50vh]">
-             {[...col2, ...col2, ...col2].map((type, i) => <MockCard key={i} type={type} />)}
+             {[...col2, ...col2, ...col2, ...col2].map((card, i) => <MockCard key={i} {...card} />)}
           </div>
 
           {/* Column 3 (Scrolls Up) */}
           <div className="flex flex-col gap-6 animate-scroll-up pt-[100vh]">
-             {[...col3, ...col3, ...col3].map((type, i) => <MockCard key={i} type={type} />)}
+             {[...col3, ...col3, ...col3, ...col3].map((card, i) => <MockCard key={i} {...card} />)}
           </div>
 
         </div>
         
         {/* Overlays to smooth out edges */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F3F4F6] via-transparent to-[#F3F4F6] pointer-events-none opacity-50"></div>
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#F3F4F6] pointer-events-none opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#F3F4F6] via-transparent to-[#F3F4F6] opacity-70"></div>
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#F3F4F6] opacity-40"></div>
       </div>
 
     </div>
