@@ -64,32 +64,39 @@ function Scenarios({ user }) {
   };
 
   const PersonaCard = ({ p, isCustom }) => (
-    <div className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shrink-0 shadow-inner">
-          <img src={p.avatarUrl} alt={p.name} className="w-full h-full object-cover" />
+    <div className="bg-white/80 backdrop-blur-xl rounded-[32px] border border-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full group relative overflow-hidden">
+      
+      {/* Decorative gradient orb */}
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 rounded-full blur-2xl -z-10 group-hover:scale-150 transition-transform duration-700"></div>
+
+      <div className="flex items-start gap-4 mb-5">
+        <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-0.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_4px_10px_rgba(0,0,0,0.05)] shrink-0">
+          <div className="w-full h-full bg-white rounded-[18px] overflow-hidden">
+            <img src={p.avatarUrl} alt={p.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+          </div>
         </div>
         <div>
-          <h3 className="font-bold text-lg text-slate-900 leading-tight mb-1">{p.name}</h3>
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
-              p.startingFactors.frustration >= 8 ? 'bg-rose-100 text-rose-700' :
-              p.startingFactors.frustration >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+          <h3 className="font-extrabold text-[17px] text-slate-900 leading-tight mb-1.5">{p.name}</h3>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
+              p.startingFactors.frustration >= 8 ? 'bg-rose-50 text-rose-600 border-rose-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)]' :
+              p.startingFactors.frustration >= 5 ? 'bg-amber-50 text-amber-600 border-amber-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)]' : 
+              'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)]'
             }`}>
-              Frustration Level {p.startingFactors.frustration}
+              Frustration Lvl {p.startingFactors.frustration}
             </span>
-            {isCustom && <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">Custom</span>}
+            {isCustom && <span className="bg-indigo-50 text-indigo-600 border-indigo-100 border shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)] text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg">Custom</span>}
           </div>
         </div>
       </div>
       
-      <p className="text-slate-500 text-sm font-medium line-clamp-3 mb-6 flex-1">
+      <p className="text-slate-500 text-[14px] font-medium leading-relaxed line-clamp-3 mb-6 flex-1">
         {p.description || p.backstory}
       </p>
 
       <button 
         onClick={() => handleStart(p.id || p._id)}
-        className="w-full py-3 bg-slate-50 hover:bg-[#111] text-slate-900 hover:text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 group-hover:bg-[#111] group-hover:text-white"
+        className="w-full py-3.5 bg-gradient-to-b from-slate-800 to-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-[0_4px_0_#0f172a,0_10px_20px_rgba(0,0,0,0.1)] active:shadow-[0_0px_0_#0f172a,0_0px_0_rgba(0,0,0,0)] active:translate-y-[4px] hover:brightness-110 transition-all group-hover:from-indigo-600 group-hover:to-indigo-700 group-hover:shadow-[0_4px_0_#3730a3,0_10px_20px_rgba(79,70,229,0.2)]"
       >
         <Play size={16} className="fill-current" /> Play Scenario
       </button>
@@ -97,7 +104,7 @@ function Scenarios({ user }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] font-sans selection:bg-indigo-100 pb-20">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/40 via-[#F9FAFB] to-[#F9FAFB] font-sans selection:bg-indigo-100 pb-20 relative">
       
       {/* Navbar */}
       <nav className="sticky top-0 inset-x-0 bg-white/80 backdrop-blur-xl z-50 border-b border-slate-200/60">
@@ -200,7 +207,7 @@ function Scenarios({ user }) {
               <div>
                 <button 
                   onClick={() => setShowForm(true)}
-                  className="mb-8 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors"
+                  className="mb-8 bg-gradient-to-b from-indigo-50 to-indigo-100 text-indigo-700 border-t border-white border-b border-indigo-200 hover:from-indigo-100 hover:to-indigo-200 px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-[0_4px_0_rgba(199,210,254,1),0_10px_20px_rgba(99,102,241,0.1)] active:shadow-[0_0px_0_rgba(199,210,254,1),0_0px_0_rgba(99,102,241,0)] active:translate-y-[4px]"
                 >
                   <Plus size={18} /> Create New Customer
                 </button>

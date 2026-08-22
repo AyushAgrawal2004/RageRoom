@@ -107,7 +107,7 @@ function Dashboard({ user, logout }) {
           </div>
           <button 
             onClick={() => navigate('/scenarios')}
-            className="bg-[#111] hover:bg-black text-white px-6 py-3 rounded-full font-semibold text-[15px] shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center gap-2"
+            className="bg-gradient-to-b from-slate-800 to-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold text-[15px] shadow-[0_4px_0_#0f172a,0_10px_20px_rgba(0,0,0,0.1)] active:shadow-[0_0px_0_#0f172a,0_0px_0_rgba(0,0,0,0)] active:translate-y-[4px] hover:brightness-110 transition-all flex items-center gap-2"
           >
             <Plus size={18} /> New Simulation
           </button>
@@ -116,12 +116,12 @@ function Dashboard({ user, logout }) {
         {/* Top Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {/* Metric 1 */}
-          <div className="bg-white p-6 rounded-[24px] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[32px] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Target size={64} className="text-indigo-600 transform translate-x-4 -translate-y-4" />
+              <Target size={64} className="text-indigo-600 transform group-hover:scale-110 transition-transform duration-500 translate-x-4 -translate-y-4" />
             </div>
-            <div className="text-slate-500 font-semibold text-sm mb-2 flex items-center gap-2">
-              <Activity size={16} /> Total Simulations
+            <div className="text-slate-500 font-bold text-sm mb-2 flex items-center gap-2">
+              <Activity size={16} className="text-indigo-500" /> Total Simulations
             </div>
             <div className="text-4xl font-black text-slate-900 tracking-tight">
               {loading ? '-' : totalSimulations}
@@ -129,29 +129,29 @@ function Dashboard({ user, logout }) {
           </div>
           
           {/* Metric 2 */}
-          <div className="bg-white p-6 rounded-[24px] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[32px] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <ShieldCheck size={64} className="text-emerald-600 transform translate-x-4 -translate-y-4" />
+              <ShieldCheck size={64} className="text-emerald-600 transform group-hover:scale-110 transition-transform duration-500 translate-x-4 -translate-y-4" />
             </div>
-            <div className="text-slate-500 font-semibold text-sm mb-2 flex items-center gap-2">
-              <Award size={16} /> Average Score
+            <div className="text-slate-500 font-bold text-sm mb-2 flex items-center gap-2">
+              <Clock size={16} className="text-emerald-500" /> Avg Score
             </div>
-            <div className="text-4xl font-black text-slate-900 tracking-tight flex items-baseline gap-1">
-              {loading ? '-' : avgScore} <span className="text-lg text-slate-400 font-bold">/100</span>
+            <div className="text-4xl font-black text-slate-900 tracking-tight">
+              {loading ? '-' : avgScore}
             </div>
           </div>
 
-          {/* Metric 3 */}
-          <div className="bg-[#111] text-white p-6 rounded-[24px] shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent"></div>
-            <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity">
-              <Star size={64} className="text-amber-400 transform translate-x-4 -translate-y-4" />
+          {/* Metric 3 - Premium Dark Card */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-[32px] border-t border-slate-700 shadow-[0_8px_30px_rgba(15,23,42,0.2)] hover:shadow-[0_20px_40px_rgba(15,23,42,0.3)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity z-10">
+              <Award size={64} className="text-indigo-400 transform group-hover:scale-110 transition-transform duration-500 translate-x-4 -translate-y-4" />
             </div>
-            <div className="relative z-10 text-slate-400 font-semibold text-sm mb-2 flex items-center gap-2">
-              <Zap size={16} className="text-amber-400" /> Highest Score
+            <div className="text-indigo-200 font-bold text-sm mb-2 flex items-center gap-2 relative z-10">
+              <Star size={16} className="text-indigo-400" /> Highest Score
             </div>
-            <div className="relative z-10 text-4xl font-black tracking-tight flex items-baseline gap-1">
-              {loading ? '-' : highestScore} <span className="text-lg text-white/30 font-bold">/100</span>
+            <div className="text-4xl font-black text-white tracking-tight relative z-10">
+              {loading ? '-' : highestScore}
             </div>
           </div>
         </div>
@@ -180,7 +180,7 @@ function Dashboard({ user, logout }) {
                </p>
                <button 
                  onClick={() => navigate('/scenarios')}
-                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+                 className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white px-8 py-3.5 rounded-2xl font-bold shadow-[0_4px_0_#3730a3,0_10px_20px_rgba(79,70,229,0.2)] active:shadow-[0_0px_0_#3730a3,0_0px_0_rgba(79,70,229,0)] active:translate-y-[4px] transition-all"
                >
                  Start Your First Session
                </button>

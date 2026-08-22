@@ -327,7 +327,7 @@ function Chat({ user }) {
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200/60 px-6 h-16 flex justify-between items-center shrink-0 shadow-sm z-10 relative">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-white/60 px-6 h-16 flex justify-between items-center shrink-0 shadow-[0_4px_20px_rgb(0,0,0,0.03)] z-10 relative">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/scenarios')} className="p-2 -ml-2 text-slate-400 hover:text-slate-900 transition-colors">
             <ArrowLeft size={20} />
@@ -371,7 +371,7 @@ function Chat({ user }) {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar (CRM Data & Factors) */}
-        <aside className="w-[320px] bg-white border-r border-slate-200/60 flex flex-col shrink-0 overflow-y-auto">
+        <aside className="w-[320px] bg-white/50 backdrop-blur-md border-r border-white/60 flex flex-col shrink-0 overflow-y-auto shadow-[4px_0_24px_rgb(0,0,0,0.02)] z-10 relative">
           
           <div className="p-6 border-b border-slate-100">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Customer Status</h3>
@@ -410,7 +410,7 @@ function Chat({ user }) {
         </aside>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-[#F9FAFB] relative">
+        <div className="flex-1 flex flex-col bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-50/30 via-[#F9FAFB] to-[#F9FAFB] relative">
           
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-8 space-y-6">
@@ -429,8 +429,8 @@ function Chat({ user }) {
                 <div 
                   className={`max-w-[75%] rounded-[24px] px-6 py-4 shadow-sm text-[15px] font-medium leading-relaxed ${
                     msg.role === 'user' 
-                      ? 'bg-[#111] text-white rounded-tr-sm' 
-                      : 'bg-white text-slate-800 rounded-tl-sm border border-slate-200/60'
+                      ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white rounded-tr-[4px] shadow-[0_4px_14px_rgba(79,70,229,0.3)] border-t border-indigo-400' 
+                      : 'bg-white text-slate-800 rounded-tl-[4px] border border-white/60 shadow-[0_4px_14px_rgb(0,0,0,0.04)]'
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -488,7 +488,7 @@ function Chat({ user }) {
           </div>
 
           {/* Input Bar */}
-          <div className="p-6 bg-white border-t border-slate-200/60 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative shrink-0">
+          <div className="p-6 bg-white/80 backdrop-blur-xl border-t border-white/60 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] relative shrink-0 z-10">
             
             {autoMessage && (
               <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-xl animate-bounce">
@@ -504,12 +504,12 @@ function Chat({ user }) {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your reply to the customer..."
                   disabled={loading}
-                  className="flex-1 px-6 py-4 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white disabled:opacity-50 transition-all shadow-inner font-medium text-[15px]"
+                  className="flex-1 px-6 py-4 bg-white/50 backdrop-blur-sm border border-white/60 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white disabled:opacity-50 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] font-medium text-[15px]"
                 />
                 <button 
                   type="submit"
                   disabled={!input.trim() || loading}
-                  className="px-8 py-4 bg-[#111] text-white font-bold rounded-full hover:bg-black transition-all shadow-lg shadow-black/10 disabled:opacity-50 disabled:shadow-none active:scale-95 flex items-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-b from-slate-800 to-slate-900 text-white font-bold rounded-full hover:brightness-110 transition-all shadow-[0_4px_0_#0f172a,0_10px_20px_rgba(0,0,0,0.1)] active:shadow-[0_0px_0_#0f172a,0_0px_0_rgba(0,0,0,0)] disabled:opacity-50 disabled:shadow-none active:translate-y-[4px] flex items-center gap-2"
                 >
                   Send <Send size={16} />
                 </button>
