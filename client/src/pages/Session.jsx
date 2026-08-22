@@ -269,7 +269,7 @@ function Session({ user }) {
       }, TOTAL_SILENCE_TIMEOUT);
 
       silenceCheckIntervalRef.current = setInterval(() => {
-        if (isSubmittingRef.current || !isRecording) return;
+        if (isSubmittingRef.current) return; // Removed stale closure check for isRecording
         
         const now = Date.now();
         const timeSinceLastSpeech = now - lastSpeechTimestamp.current;
