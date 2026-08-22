@@ -122,19 +122,19 @@ function Landing({ user }) {
 
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  // Map 0-1 range into thirds for 3 storytelling blocks
-  const op1 = useTransform(smoothProgress, [0, 0.25, 0.33, 1], [1, 1, 0, 0]);
-  const op2 = useTransform(smoothProgress, [0, 0.25, 0.33, 0.58, 0.66, 1], [0, 0, 1, 1, 0, 0]);
-  const op3 = useTransform(smoothProgress, [0, 0.58, 0.66, 1], [0, 0, 1, 1]);
+  // Increased dwell time: sharp transitions, long reading periods
+  const op1 = useTransform(smoothProgress, [0, 0.20, 0.25, 1], [1, 1, 0, 0]);
+  const op2 = useTransform(smoothProgress, [0, 0.25, 0.30, 0.55, 0.60, 1], [0, 0, 1, 1, 0, 0]);
+  const op3 = useTransform(smoothProgress, [0, 0.60, 0.65, 1], [0, 0, 1, 1]);
 
-  const y1 = useTransform(smoothProgress, [0, 0.25, 0.33, 1], [0, 0, -40, -40]);
-  const y2 = useTransform(smoothProgress, [0, 0.25, 0.33, 0.58, 0.66, 1], [40, 40, 0, 0, -40, -40]);
-  const y3 = useTransform(smoothProgress, [0, 0.58, 0.66, 1], [40, 40, 0, 0]);
+  const y1 = useTransform(smoothProgress, [0, 0.20, 0.25, 1], [0, 0, -40, -40]);
+  const y2 = useTransform(smoothProgress, [0, 0.25, 0.30, 0.55, 0.60, 1], [40, 40, 0, 0, -40, -40]);
+  const y3 = useTransform(smoothProgress, [0, 0.60, 0.65, 1], [40, 40, 0, 0]);
 
-  // Premium UI right-side visual state mapping
-  const uiState1 = useTransform(smoothProgress, [0, 0.3], [1, 0]);
-  const uiState2 = useTransform(smoothProgress, [0.2, 0.33, 0.6], [0, 1, 0]);
-  const uiState3 = useTransform(smoothProgress, [0.55, 0.66, 1], [0, 1, 1]);
+  // Premium UI right-side visual state mapping (sync perfectly with text)
+  const uiState1 = useTransform(smoothProgress, [0, 0.20, 0.25, 1], [1, 1, 0, 0]);
+  const uiState2 = useTransform(smoothProgress, [0, 0.25, 0.30, 0.55, 0.60, 1], [0, 0, 1, 1, 0, 0]);
+  const uiState3 = useTransform(smoothProgress, [0, 0.60, 0.65, 1], [0, 0, 1, 1]);
 
   return (
     <div className="bg-white min-h-screen font-sans selection:bg-indigo-100">
@@ -232,7 +232,7 @@ function Landing({ user }) {
       </section>
 
       {/* Scrollytelling Section */}
-      <section ref={containerRef} className="h-[300vh] relative bg-black text-white">
+      <section ref={containerRef} className="h-[500vh] relative bg-black text-white">
         <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
           
           {/* Subtle glowing background orbs */}
