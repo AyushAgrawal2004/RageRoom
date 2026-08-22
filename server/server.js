@@ -430,16 +430,18 @@ app.post('/api/end', async (req, res) => {
       transcript += `${roleName}: ${msg.content}\n\n`;
     });
     
-    const startingFactors = conversation.startingFactors;
+    // Convert Mongoose Maps to plain objects
+    const startingFactors = conversation.startingFactors ? Object.fromEntries(conversation.startingFactors) : { frustration: 5, patience: 5, trust: 5, loyalty: 5, satisfaction: 5 };
     
     // Find the final factors from the last assistant message
-    let finalFactors = conversation.startingFactors;
+    let finalFactorsObj = startingFactors;
     for (let i = conversation.messages.length - 1; i >= 0; i--) {
       if (conversation.messages[i].role === 'assistant' && conversation.messages[i].factors) {
-        finalFactors = conversation.messages[i].factors;
+        finalFactorsObj = Object.fromEntries(conversation.messages[i].factors);
         break;
       }
     }
+    const finalFactors = finalFactorsObj;
 
 
     // Call the LLM judge for category scores and feedback
@@ -456,7 +458,7 @@ app.post('/api/end', async (req, res) => {
     }
     
     // Clamp score between 0 and 100
-    reportCard.overallScore = Math.max(0, Math.min(100, Math.round(score)));
+    reportCard.overallScore = isNaN(score) ? 50 : Math.max(0, Math.min(100, Math.round(score)));
 
     conversation.reportCard = reportCard;
     await conversation.save();

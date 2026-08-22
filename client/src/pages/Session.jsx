@@ -19,6 +19,8 @@ function Session({ user }) {
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
   const [crmData, setCrmData] = useState(null);
   
   const [inputMode, setInputMode] = useState(location.state?.mode || 'chat');
@@ -144,7 +146,7 @@ function Session({ user }) {
   };
 
   const endSession = async () => {
-    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    const userMessageCount = messagesRef.current.filter(m => m.role === 'user').length;
     if (userMessageCount < 3) {
       const confirmEnd = window.confirm(`You've only sent ${userMessageCount} message(s). Ending the session this early will negatively impact your Problem Solving score. Are you sure you want to end?`);
       if (!confirmEnd) return;
