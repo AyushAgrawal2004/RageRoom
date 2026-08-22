@@ -42,7 +42,12 @@ function Session({ user }) {
   const lastSpeechTimestamp = useRef(0);
   const silenceCheckIntervalRef = useRef(null);
   const totalSilenceTimeoutRef = useRef(null);
-  const isSubmittingRef = useRef(false);
+    const isSubmittingRef = useRef(false);
+  
+  const sendMessageRef = useRef(null);
+  useEffect(() => {
+    sendMessageRef.current = sendMessage;
+  });
 
   useEffect(() => {
     if (!selectedPersonaId) {
@@ -278,7 +283,7 @@ function Session({ user }) {
         if (timeSinceLastSpeech > SILENCE_THRESHOLD && currentTranscript.length > 0) {
           isSubmittingRef.current = true;
           recognition.stop();
-          sendMessage(currentTranscript, 'call');
+          if (sendMessageRef.current) sendMessageRef.current(currentTranscript, 'call');
           transcriptRef.current = '';
           interimTranscriptRef.current = '';
         }
