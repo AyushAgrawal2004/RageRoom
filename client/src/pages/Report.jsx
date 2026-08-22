@@ -12,7 +12,7 @@ function Report() {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const res = await axios.post('http://localhost:5005/api/end', { sessionId });
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/end`, { sessionId });
         setReport(res.data.reportCard);
       } catch (err) {
         console.error('Failed to load report', err);

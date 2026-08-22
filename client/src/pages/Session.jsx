@@ -126,7 +126,7 @@ function Session({ user }) {
     setError(null);
     try {
       const token = localStorage.getItem('rageroom_token');
-      const response = await axios.post('http://localhost:5005/api/start', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/start`, {
         personaId: selectedPersonaId,
         userId: user ? user.id || user._id : null
       }, {
@@ -162,7 +162,7 @@ function Session({ user }) {
     
     setIsEnding(true);
     try {
-      await axios.post('http://localhost:5005/api/end', { sessionId });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/end`, { sessionId });
       navigate(`/report/${sessionId}`);
     } catch (err) {
       console.error('Failed to generate report card:', err);
@@ -220,7 +220,7 @@ function Session({ user }) {
     }
 
     try {
-      const response = await axios.post('http://localhost:5005/api/chat', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/chat`, {
         sessionId,
         personaId: selectedPersonaId,
         currentFactors: currentFactors,

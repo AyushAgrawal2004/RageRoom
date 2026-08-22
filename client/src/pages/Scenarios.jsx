@@ -20,8 +20,8 @@ function Scenarios({ user }) {
       try {
         setLoading(true);
         const [globalRes, customRes] = await Promise.all([
-          axios.get('http://localhost:5005/api/personas'),
-          user ? axios.get('http://localhost:5005/api/personas/custom', {
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/personas`),
+          user ? axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/personas/custom`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('rageroom_token')}` }
           }).catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
         ]);
@@ -49,7 +49,7 @@ function Scenarios({ user }) {
         ...formData,
         startingFactors: { frustration: Number(formData.frustration), patience: 5, trust: 5, loyalty: 5, satisfaction: 5 }
       };
-      const res = await axios.post('http://localhost:5005/api/personas/custom', payload, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/personas/custom`, payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem('rageroom_token')}` }
       });
       setCustomPersonas([...customPersonas, res.data]);

@@ -12,7 +12,7 @@ function Dashboard({ user, logout }) {
     const fetchSessions = async () => {
       try {
         const token = localStorage.getItem('rageroom_token');
-        const res = await axios.get('http://localhost:5005/api/sessions', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/sessions`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // Sort sessions by date (newest first) if not already sorted
