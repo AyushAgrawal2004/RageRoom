@@ -293,7 +293,9 @@ app.post('/api/chat', async (req, res) => {
     }
     
     let isHangup = false;
-    if (newFactors.frustration >= 10 || newFactors.patience <= 1 || newFactors.trust <= 1 || newFactors.satisfaction <= 1) {
+    // Trust and Satisfaction can naturally start at 1 for some personas.
+    // Only hang up if Frustration hits 10, or Patience hits 1.
+    if (newFactors.frustration >= 10 || newFactors.patience <= 1) {
       isHangup = true;
     }
 
