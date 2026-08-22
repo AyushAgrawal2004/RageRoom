@@ -196,16 +196,17 @@ function Dashboard({ user, logout }) {
                     
                     {/* Left: Persona & Date */}
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl shadow-inner">
-                        {s.personaUsed.includes('Karen') ? '🤬' : s.personaUsed.includes('Kevin') ? '🔥' : '😤'}
+                      <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm">
+                        <img src={`https://api.dicebear.com/9.x/notionists/svg?seed=${s.personaUsed}&backgroundColor=e2e8f0`} alt="Avatar" className="w-full h-full object-cover" />
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 text-[15px] mb-0.5 group-hover:text-indigo-600 transition-colors">
-                          {s.personaUsed}
+                        <div className="font-bold text-slate-900 text-[16px] mb-1 group-hover:text-indigo-600 transition-colors capitalize">
+                          {s.personaUsed.replace(/-/g, ' ')}
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-                          <Clock size={12} />
-                          {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400">
+                          <span className="flex items-center gap-1"><Clock size={12} /> {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span>{s.messages?.length || 0} messages</span>
                         </div>
                       </div>
                     </div>
