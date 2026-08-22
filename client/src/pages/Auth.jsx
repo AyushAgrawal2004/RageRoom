@@ -155,7 +155,7 @@ function Auth({ setUser }) {
       localStorage.setItem('rageroom_token', res.data.token);
       localStorage.setItem('rageroom_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
     } finally {

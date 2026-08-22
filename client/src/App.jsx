@@ -36,7 +36,7 @@ function App() {
         />
         <Route 
           path="/auth" 
-          element={!user ? <Auth setUser={setUser} /> : <Navigate to="/dashboard" />} 
+          element={!user ? <Auth setUser={setUser} /> : <Navigate to="/" />} 
         />
         <Route 
           path="/dashboard" 
