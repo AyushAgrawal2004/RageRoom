@@ -11,6 +11,8 @@ const jwt = require('jsonwebtoken');
 
 const Conversation = require('./models/Conversation');
 const User = require('./models/User');
+const CustomPersona = require('./models/CustomPersona');
+
 const personas = require('./data/personas');
 const { classifyAgentMessage } = require('./services/classifier');
 const { factorMatrix, decayConfig } = require('./data/factorMatrix');
@@ -101,6 +103,74 @@ app.get('/api/sessions', authMiddleware, async (req, res) => {
   }
 });
 
+
+/* =======================================================================
+   CUSTOM PERSONAS ROUTES
+======================================================================= */
+app.get('/api/personas/custom', authMiddleware, async (req, res) => {
+  try {
+    const customPersonas = await CustomPersona.find({ userId: req.user.userId });
+    res.json(customPersonas);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch custom personas' });
+  }
+});
+
+app.post('/api/personas/custom', authMiddleware, async (req, res) => {
+  try {
+    const { name, description, backstory, initialMessage, startingFactors } = req.body;
+    
+    // Auto-generate Dicebear PF
+    const seed = name.replace(/\s+/g, '') + Date.now();
+    const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=f3f4f6`;
+
+    const custom = new CustomPersona({
+      userId: req.user.userId,
+      name,
+      description,
+      backstory,
+      initialMessage,
+      startingFactors: startingFactors || { frustration: 5, patience: 5, trust: 5, loyalty: 5, satisfaction: 5 },
+      avatarUrl,
+      crmData: {
+        accountName: "Custom User",
+        accountStatus: "Unknown",
+        customerSince: "N/A",
+        issueRelatedTo: "Custom Scenario"
+      }
+    });
+
+    await custom.save();
+    // Return with an 'id' field to match global personas structure
+    const customWithId = custom.toObject();
+    customWithId.id = custom._id.toString();
+    
+    res.json(customWithId);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create custom persona', details: err.message });
+  }
+});
+
+/* =======================================================================
+   LEADERBOARD ROUTE
+======================================================================= */
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    // Find highest scores globally, grouped by user and persona
+    const topSessions = await Conversation.find({ 
+      'reportCard.overallScore': { $exists: true },
+      userId: { $ne: null }
+    })
+    .sort({ 'reportCard.overallScore': -1 })
+    .populate('userId', 'username')
+    .limit(100);
+
+    res.json(topSessions);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
 /* =======================================================================
    SIMULATOR ROUTES
 ======================================================================= */
@@ -113,7 +183,18 @@ app.post('/api/start', async (req, res) => {
   try {
     const { personaId, customFactors, userId } = req.body;
     
-    const persona = personas.find(p => p.id === personaId) || personas[0];
+    
+    let persona = personas.find(p => p.id === personaId);
+    if (!persona) {
+      const customP = await CustomPersona.findById(personaId);
+      if (customP) {
+        persona = customP.toObject();
+        persona.id = persona._id.toString();
+      } else {
+        persona = personas[0];
+      }
+    }
+
     const startingFactors = customFactors || persona.startingFactors;
     
     // Generate dynamic CRM Data

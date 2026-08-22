@@ -52,18 +52,26 @@ function Dashboard({ user, logout }) {
         
         {/* Navigation */}
         <nav className="px-4 flex-1 space-y-1.5 mt-4">
-          <a href="#" className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 text-slate-900 font-semibold rounded-xl">
+          <div onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 text-slate-900 font-semibold rounded-xl cursor-pointer">
             <LayoutDashboard size={18} className="text-slate-700" />
             Overview
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
+          </div>
+          <div onClick={() => navigate('/scenarios')} className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-pointer">
+            <Target size={18} />
+            Scenarios
+          </div>
+          <div onClick={() => navigate('/leaderboard')} className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-pointer">
+            <Trophy size={18} />
+            Leaderboard
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
             <BarChart3 size={18} />
             Analytics <span className="ml-auto text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded-full text-slate-400">PRO</span>
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2.5 text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors cursor-not-allowed opacity-60">
             <Settings size={18} />
             Settings
-          </a>
+          </div>
         </nav>
         
         {/* User Profile */}
@@ -98,7 +106,7 @@ function Dashboard({ user, logout }) {
             <p className="text-slate-500 font-medium text-[15px]">Welcome back. Here is your training overview.</p>
           </div>
           <button 
-            onClick={() => navigate('/chat')}
+            onClick={() => navigate('/scenarios')}
             className="bg-[#111] hover:bg-black text-white px-6 py-3 rounded-full font-semibold text-[15px] shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center gap-2"
           >
             <Plus size={18} /> New Simulation
@@ -171,7 +179,7 @@ function Dashboard({ user, logout }) {
                  You haven't completed any training sessions. Jump in and test your de-escalation skills.
                </p>
                <button 
-                 onClick={() => navigate('/chat')}
+                 onClick={() => navigate('/scenarios')}
                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
                >
                  Start Your First Session

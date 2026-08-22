@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import Scenarios from './pages/Scenarios';
 import Chat from './pages/Chat';
 import Report from './pages/Report';
+import Leaderboard from './pages/Leaderboard';
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('rageroom_token');
     const storedUser = localStorage.getItem('rageroom_user');
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
     setLoading(false);
   }, []);
 
@@ -28,30 +28,40 @@ function App() {
   if (loading) return null;
 
   return (
-    <Router>
-      <Routes>
-        <Route 
-          path="/" 
-          element={<Landing user={user} />} 
-        />
-        <Route 
-          path="/auth" 
-          element={!user ? <Auth setUser={setUser} /> : <Navigate to="/" />} 
-        />
-        <Route 
-          path="/dashboard" 
-          element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/auth" />} 
-        />
-        <Route 
-          path="/chat" 
-          element={user ? <Chat user={user} /> : <Navigate to="/auth" />} 
-        />
-        <Route 
-          path="/report/:sessionId" 
-          element={user ? <Report /> : <Navigate to="/auth" />} 
-        />
-      </Routes>
-    </Router>
+    <BrowserRouter>
+      <div className="app-container">
+        <Routes>
+          <Route 
+            path="/" 
+            element={<Landing user={user} />} 
+          />
+          <Route 
+            path="/auth" 
+            element={!user ? <Auth setUser={setUser} /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/dashboard" 
+            element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/scenarios" 
+            element={user ? <Scenarios user={user} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/chat" 
+            element={user ? <Chat user={user} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/report/:sessionId" 
+            element={user ? <Report user={user} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/leaderboard" 
+            element={<Leaderboard />} 
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
