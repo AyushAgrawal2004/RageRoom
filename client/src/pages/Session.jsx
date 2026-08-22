@@ -43,6 +43,11 @@ function Session({ user }) {
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
+    // Pre-load voices to ensure they are available when speakText is called
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
+
     if (!selectedPersonaId) {
       navigate('/scenarios');
     } else {
@@ -79,7 +84,20 @@ function Session({ user }) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       
-      utterance.onstart = () => setIsCustomerSpeaking(true);
+      // Try to find a good English voice so it doesn't fail silently
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en-') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Premium')));
+      if (enVoice) utterance.voice = enVoice;
+      
+      // Safety timeout: if onstart doesn't fire within 1s, force the UI state
+      const fallbackTimeout = setTimeout(() => {
+        setIsCustomerSpeaking(true);
+      }, 1000);
+      
+      utterance.onstart = () => {
+        clearTimeout(fallbackTimeout);
+        setIsCustomerSpeaking(true);
+      };
       
       utterance.onend = () => {
         setIsCustomerSpeaking(false);
