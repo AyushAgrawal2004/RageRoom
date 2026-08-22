@@ -4,7 +4,7 @@ import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Scenarios from './pages/Scenarios';
-import Chat from './pages/Chat';
+import Session from './pages/Session';
 import Report from './pages/Report';
 import Leaderboard from './pages/Leaderboard';
 import './App.css';
@@ -48,8 +48,8 @@ function App() {
             element={user ? <Scenarios user={user} /> : <Navigate to="/auth" />} 
           />
           <Route 
-            path="/chat" 
-            element={user ? <Chat user={user} /> : <Navigate to="/auth" />} 
+            path="/session" 
+            element={user ? <Session user={user} /> : <Navigate to="/auth" />} 
           />
           <Route 
             path="/report/:sessionId" 
