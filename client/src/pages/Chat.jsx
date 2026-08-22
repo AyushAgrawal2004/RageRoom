@@ -195,6 +195,12 @@ function Chat({ user }) {
   };
 
   const endSession = async () => {
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    if (userMessageCount < 3) {
+      const confirmEnd = window.confirm(`You've only sent ${userMessageCount} message(s). Ending the session this early will negatively impact your Problem Solving score. Are you sure you want to end?`);
+      if (!confirmEnd) return;
+    }
+
     window.speechSynthesis.cancel();
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop();

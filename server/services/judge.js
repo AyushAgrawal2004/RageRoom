@@ -14,9 +14,9 @@ Rate the trainee out of 10 in the following categories:
 - problemSolving: How effectively did they resolve the issue?
 - empathy: Did they show understanding and warmth?
 
-Also provide:
-- overallScore: An overall grade out of 100.
-- feedback: A 2-3 sentence constructive feedback paragraph.
+CRITICAL RULES:
+1. Short Sessions: If the transcript is very short, do not penalize the agent for failing to completely solve the problem. Grade them ONLY on the quality, professionalism, and empathy of the few messages they did manage to send.
+2. Emotional Progress: Use the Before & After emotional metrics provided to objectively see if they made progress.
 
 Output ONLY JSON in this exact structure:
 {
@@ -24,17 +24,18 @@ Output ONLY JSON in this exact structure:
   "deEscalation": number,
   "problemSolving": number,
   "empathy": number,
-  "overallScore": number,
-  "feedback": "string"
+  "feedback": "A 2-3 sentence constructive feedback paragraph referencing their specific actions and the emotional outcome."
 }`;
 
-async function generateReportCard(transcript) {
+async function generateReportCard(transcript, startingFactors, finalFactors, turnCount) {
   try {
+    const contextStr = `TRANSCRIPT (${turnCount} agent turns):\n\n${transcript}\n\nMETRICS:\nStarting State: ${JSON.stringify(startingFactors)}\nFinal State: ${JSON.stringify(finalFactors)}`;
+    
     const response = await openai.chat.completions.create({
       model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: JUDGE_SYSTEM_PROMPT },
-        { role: 'user', content: `TRANSCRIPT:\n\n${transcript}` }
+        { role: 'user', content: contextStr }
       ],
       response_format: { type: 'json_object' },
       temperature: 0.1,
@@ -44,13 +45,11 @@ async function generateReportCard(transcript) {
     return parsed;
   } catch (error) {
     console.error('Judge evaluation failed:', error);
-    // Fallback report card in case of API failure
     return {
       professionalism: 0,
       deEscalation: 0,
       problemSolving: 0,
       empathy: 0,
-      overallScore: 0,
       feedback: "Failed to generate report card due to API error."
     };
   }

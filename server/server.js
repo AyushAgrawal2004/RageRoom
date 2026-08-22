@@ -309,35 +309,54 @@ Instructions:
   }
 });
 
-// POST /api/end - End session and generate report card
+// POST /api/end - end session and get report card
 app.post('/api/end', async (req, res) => {
   const { sessionId } = req.body;
-  
   if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
   try {
     const conversation = await Conversation.findOne({ sessionId });
-    if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
-    if (conversation.reportCard && conversation.reportCard.overallScore) {
-      return res.json({ reportCard: conversation.reportCard });
+    if (!conversation) return res.status(404).json({ error: 'Session not found' });
+    
+    if (conversation.reportCard && conversation.reportCard.overallScore !== undefined) {
+      return res.json(conversation);
     }
 
-    // Build transcript
-    let transcriptText = `Persona: ${conversation.personaUsed}\n\n`;
+    let transcript = '';
+    let agentTurnCount = 0;
+    
     conversation.messages.forEach(msg => {
-      const speaker = msg.role === 'assistant' ? 'Customer' : 'Agent';
-      transcriptText += `${speaker}: ${msg.content}\n`;
+      const roleName = msg.role === 'assistant' ? 'CUSTOMER' : 'AGENT';
+      if (msg.role === 'user') agentTurnCount++;
+      transcript += `${roleName}: ${msg.content}\n\n`;
     });
+    
+    const startingFactors = conversation.startingFactors;
+    const finalFactors = conversation.messages[conversation.messages.length - 1].factors;
 
-    const reportCard = await generateReportCard(transcriptText);
+    // Call the LLM judge for category scores and feedback
+    const reportCard = await generateReportCard(transcript, startingFactors, finalFactors, agentTurnCount);
+    
+    // Algorithmic Score Calculation
+    let score = 50; // Base score
+    if (finalFactors && startingFactors) {
+      score += (startingFactors.frustration - finalFactors.frustration) * 5; // Frustration drop is good
+      score += (finalFactors.patience - startingFactors.patience) * 5;
+      score += (finalFactors.trust - startingFactors.trust) * 5;
+      score += (finalFactors.loyalty - startingFactors.loyalty) * 3;
+      score += (finalFactors.satisfaction - startingFactors.satisfaction) * 8;
+    }
+    
+    // Clamp score between 0 and 100
+    reportCard.overallScore = Math.max(0, Math.min(100, Math.round(score)));
 
     conversation.reportCard = reportCard;
     await conversation.save();
 
-    res.json({ reportCard });
+    res.json(conversation);
   } catch (error) {
-    console.error('Error ending session:', error);
-    res.status(500).json({ error: 'Failed to generate report card' });
+    console.error('Error generating report card:', error);
+    res.status(500).json({ error: 'Failed to end session' });
   }
 });
 
