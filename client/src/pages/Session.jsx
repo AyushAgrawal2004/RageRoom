@@ -6,7 +6,7 @@ import '../App.css';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const SILENCE_THRESHOLD = 1200; 
+const SILENCE_THRESHOLD = 1500; 
 const TOTAL_SILENCE_TIMEOUT = 10000; 
 
 function Session({ user }) {
@@ -38,6 +38,7 @@ function Session({ user }) {
   
   const inputModeRef = useRef(inputMode);
   const transcriptRef = useRef('');
+  const interimTranscriptRef = useRef('');
   const lastSpeechTimestamp = useRef(0);
   const silenceCheckIntervalRef = useRef(null);
   const totalSilenceTimeoutRef = useRef(null);
@@ -257,6 +258,7 @@ function Session({ user }) {
       setIsRecording(true);
       isSubmittingRef.current = false;
       transcriptRef.current = '';
+      interimTranscriptRef.current = '';
       lastSpeechTimestamp.current = Date.now();
 
       totalSilenceTimeoutRef.current = setTimeout(() => {
@@ -302,8 +304,11 @@ function Session({ user }) {
         }
       }
 
+      interimTranscriptRef.current = interimTranscript;
+      
       if (finalTranscriptChunk) {
         transcriptRef.current += finalTranscriptChunk;
+        interimTranscriptRef.current = ''; // clear interim since it became final
       }
     };
 
