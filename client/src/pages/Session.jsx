@@ -31,6 +31,7 @@ function Session({ user }) {
   const [error, setError] = useState(null);
   const [isEnding, setIsEnding] = useState(false);
   const [isCustomerSpeaking, setIsCustomerSpeaking] = useState(false);
+  const [isCallAccepted, setIsCallAccepted] = useState(false);
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -121,7 +122,9 @@ function Session({ user }) {
       setCurrentFactors(response.data.message.factors);
       setCrmData(response.data.crmData);
       setSessionActive(true);
-      speakText(response.data.message.content);
+      if (location.state?.mode !== 'call') {
+        speakText(response.data.message.content);
+      }
     } catch (err) {
       console.error('Error starting session:', err);
       setError('Failed to start session. Please try again.');
@@ -170,6 +173,14 @@ function Session({ user }) {
       } catch (err) {
         if (err.name === 'InvalidStateError') setIsRecording(true);
       }
+    }
+  };
+
+  
+  const handleAcceptCall = () => {
+    setIsCallAccepted(true);
+    if (messages.length > 0) {
+      speakText(messages[0].content);
     }
   };
 
@@ -424,6 +435,25 @@ function Session({ user }) {
             // ==========================================
             <div className="flex-1 flex flex-col items-center justify-center relative p-8">
               
+              
+              {!isCallAccepted ? (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md rounded-3xl m-4">
+                  <div className={`w-32 h-32 rounded-full overflow-hidden border-[6px] border-white shadow-2xl mb-6 bg-white ${!loading ? 'animate-bounce' : ''}`}>
+                    {persona?.avatarUrl ? <img src={persona?.avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-200"></div>}
+                  </div>
+                  <h2 className="text-2xl font-black text-white mb-2 tracking-tight">{loading ? 'Connecting...' : 'Incoming Call...'}</h2>
+                  <p className="text-slate-200 font-bold mb-12">{persona?.name}</p>
+                  
+                  <button 
+                    onClick={handleAcceptCall}
+                    disabled={loading}
+                    className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${loading ? 'bg-slate-500 cursor-not-allowed opacity-50' : 'bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.6)] hover:scale-110 active:scale-95'} text-white`}
+                  >
+                    <PhoneCall size={32} />
+                  </button>
+                  <p className={`font-bold mt-4 uppercase tracking-widest text-xs ${loading ? 'text-slate-300' : 'text-emerald-400'}`}>{loading ? 'Dialing...' : 'Accept'}</p>
+                </div>
+              ) : null}
               {/* Pulsing rings when speaking */}
               <div className="relative flex items-center justify-center">
                 {isCustomerSpeaking && (
