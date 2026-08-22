@@ -30,6 +30,23 @@ body {
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
+  .animate-scroll-up {
+    animation: scrollUp 40s linear infinite;
+  }
+  
+  .animate-scroll-down {
+    animation: scrollDown 40s linear infinite;
+  }
+}
+
+@keyframes scrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes scrollDown {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
 }
 
 @keyframes slideUp {
