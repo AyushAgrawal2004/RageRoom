@@ -31,34 +31,34 @@ function Auth({ setUser }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border border-slate-200">
-        <h1 className="text-2xl font-bold text-slate-800 text-center mb-6">
-          {isLogin ? 'Login to RageRoom' : 'Create an Account'}
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col justify-center items-center p-4">
+      <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-[#E5E7EB] animate-slide-up">
+        <h1 className="text-[28px] leading-[1.2] font-semibold text-[#111111] text-center mb-8 tracking-[-0.02em]">
+          {isLogin ? 'Log in to RageRoom' : 'Create an Account'}
         </h1>
         
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm font-medium border border-red-200">{error}</div>}
+        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm font-medium border border-red-100">{error}</div>}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+            <label className="block text-sm font-medium text-[#6B6B6B] mb-1.5">Username</label>
             <input 
               type="text" 
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent focus:outline-none transition-all duration-200 text-[#111111] placeholder:text-[#9CA3AF]"
               placeholder="agent_smith"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-[#6B6B6B] mb-1.5">Password</label>
             <input 
               type="password" 
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent focus:outline-none transition-all duration-200 text-[#111111] placeholder:text-[#9CA3AF]"
               placeholder="••••••••"
             />
           </div>
@@ -66,18 +66,18 @@ function Auth({ setUser }) {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition disabled:opacity-50"
+            className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-medium py-3.5 rounded-xl shadow-[0_2px_4px_rgba(79,70,229,0.1)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 mt-2"
           >
-            {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
+            {loading ? 'Processing...' : (isLogin ? 'Continue' : 'Create Account')}
           </button>
         </form>
         
-        <p className="mt-6 text-center text-sm text-slate-600">
+        <p className="mt-8 text-center text-sm text-[#6B6B6B]">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button 
             type="button"
             onClick={() => { setIsLogin(!isLogin); setError(null); }}
-            className="text-blue-600 font-semibold hover:underline"
+            className="text-[var(--color-accent)] font-medium hover:underline focus:outline-none"
           >
             {isLogin ? 'Sign up' : 'Log in'}
           </button>

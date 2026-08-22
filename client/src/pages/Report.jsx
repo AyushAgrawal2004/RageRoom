@@ -46,62 +46,69 @@ function Report() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-        <div className="bg-slate-800 p-8 text-center text-white relative">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="absolute top-4 left-4 text-slate-300 hover:text-white font-semibold flex items-center gap-1"
-          >
-            &larr; Dashboard
-          </button>
-          <h1 className="text-3xl font-bold mb-2">Simulation Report Card</h1>
-          <p className="text-slate-300">Session ID: {sessionId}</p>
-        </div>
-
-        <div className="p-8">
-          <div className="flex flex-col items-center mb-10 border-b pb-8">
-            <span className="text-slate-500 font-semibold uppercase tracking-wider mb-2">Overall Score</span>
-            <div className={'text-6xl font-black ' + (report.overallScore >= 70 ? 'text-green-500' : 'text-red-500')}>
-              {report.overallScore}<span className="text-3xl text-slate-300">/100</span>
-            </div>
+    <div className="min-h-screen bg-[#FAFAFA] p-8">
+      <div className="max-w-3xl mx-auto animate-slide-up">
+        
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="text-[#6B6B6B] hover:text-[#111111] font-medium flex items-center gap-2 mb-6 transition-colors"
+        >
+          &larr; Back to Dashboard
+        </button>
+        
+        <div className="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-[#E5E7EB] overflow-hidden">
+          <div className="p-8 text-center border-b border-[#F3F4F6]">
+            <h1 className="text-[28px] leading-[1.2] font-semibold text-[#111111] mb-2 tracking-[-0.02em]">Performance Review</h1>
+            <p className="text-[14px] text-[#9CA3AF]">Session ID: {sessionId}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 mb-10">
-            <div className="bg-slate-50 p-4 rounded-xl border">
-              <div className="text-sm text-slate-500 font-semibold mb-1">Professionalism</div>
-              <div className={'text-3xl font-bold ' + getScoreColor(report.professionalism)}>{report.professionalism}/10</div>
+          <div className="p-10">
+            <div className="flex flex-col items-center mb-12">
+              <span className="text-[13px] text-[#6B6B6B] font-medium tracking-wide uppercase mb-3">Overall Score</span>
+              <div className="flex items-baseline">
+                <span className={`text-[64px] leading-none font-bold tracking-tight ${report.overallScore >= 70 ? 'text-emerald-500' : report.overallScore >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+                  {report.overallScore}
+                </span>
+                <span className="text-[24px] text-[#9CA3AF] font-medium ml-1">/100</span>
+              </div>
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl border">
-              <div className="text-sm text-slate-500 font-semibold mb-1">De-Escalation</div>
-              <div className={'text-3xl font-bold ' + getScoreColor(report.deEscalation)}>{report.deEscalation}/10</div>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-xl border">
-              <div className="text-sm text-slate-500 font-semibold mb-1">Problem Solving</div>
-              <div className={'text-3xl font-bold ' + getScoreColor(report.problemSolving)}>{report.problemSolving}/10</div>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-xl border">
-              <div className="text-sm text-slate-500 font-semibold mb-1">Empathy</div>
-              <div className={'text-3xl font-bold ' + getScoreColor(report.empathy)}>{report.empathy}/10</div>
-            </div>
-          </div>
 
-          <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-xl">
-            <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-              <span className="text-xl">🤖</span> Judge's Feedback
-            </h3>
-            <p className="text-indigo-800 leading-relaxed">
-              {report.feedback}
-            </p>
-          </div>
-          
-          <div className="mt-8 flex justify-center">
-             <button 
-                onClick={() => navigate('/chat')}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-md transition"
-              >
-                Start Another Simulation
-              </button>
+            <div className="grid grid-cols-2 gap-4 mb-12">
+              <div className="bg-[#FAFAFA] p-5 rounded-[16px] border border-[#E5E7EB]">
+                <div className="text-[13px] text-[#6B6B6B] font-medium mb-2">Professionalism</div>
+                <div className={'text-[28px] leading-none font-semibold tracking-tight ' + getScoreColor(report.professionalism)}>{report.professionalism}<span className="text-[16px] text-[#9CA3AF] font-normal">/10</span></div>
+              </div>
+              <div className="bg-[#FAFAFA] p-5 rounded-[16px] border border-[#E5E7EB]">
+                <div className="text-[13px] text-[#6B6B6B] font-medium mb-2">De-Escalation</div>
+                <div className={'text-[28px] leading-none font-semibold tracking-tight ' + getScoreColor(report.deEscalation)}>{report.deEscalation}<span className="text-[16px] text-[#9CA3AF] font-normal">/10</span></div>
+              </div>
+              <div className="bg-[#FAFAFA] p-5 rounded-[16px] border border-[#E5E7EB]">
+                <div className="text-[13px] text-[#6B6B6B] font-medium mb-2">Problem Solving</div>
+                <div className={'text-[28px] leading-none font-semibold tracking-tight ' + getScoreColor(report.problemSolving)}>{report.problemSolving}<span className="text-[16px] text-[#9CA3AF] font-normal">/10</span></div>
+              </div>
+              <div className="bg-[#FAFAFA] p-5 rounded-[16px] border border-[#E5E7EB]">
+                <div className="text-[13px] text-[#6B6B6B] font-medium mb-2">Empathy</div>
+                <div className={'text-[28px] leading-none font-semibold tracking-tight ' + getScoreColor(report.empathy)}>{report.empathy}<span className="text-[16px] text-[#9CA3AF] font-normal">/10</span></div>
+              </div>
+            </div>
+
+            <div className="bg-indigo-50/50 border border-indigo-100 p-6 rounded-[16px]">
+              <h3 className="text-[14px] font-semibold text-indigo-900 mb-2 uppercase tracking-wide">
+                Judge's Feedback
+              </h3>
+              <p className="text-[15px] text-indigo-900/80 leading-[1.6]">
+                {report.feedback}
+              </p>
+            </div>
+            
+            <div className="mt-10 flex justify-center">
+               <button 
+                  onClick={() => navigate('/chat')}
+                  className="px-8 py-3.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-medium rounded-[12px] shadow-[0_2px_4px_rgba(79,70,229,0.1)] transition-all duration-200 active:scale-[0.98]"
+                >
+                  Start Another Simulation
+                </button>
+            </div>
           </div>
         </div>
       </div>

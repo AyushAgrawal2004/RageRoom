@@ -324,25 +324,25 @@ function Chat({ user }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-200 flex flex-col p-4">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col p-4">
       {/* Header */}
-      <header className="bg-slate-800 text-white px-6 py-4 flex justify-between items-center rounded-xl shadow-md mb-4 shrink-0">
-        <h1 className="text-xl font-bold flex items-center gap-3">
-          <span className="text-2xl">⚡️</span> 
+      <header className="bg-white text-[#111111] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] border border-[#E5E7EB] px-6 py-4 flex justify-between items-center rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] mb-4 shrink-0">
+        <h1 className="text-[20px] tracking-[-0.01em] font-semibold flex items-center gap-3">
+          <span className="text-[24px] tracking-[-0.02em]">⚡️</span> 
           Difficult Customer Simulator
         </h1>
         
         <div className="flex items-center gap-4">
-          <div className="flex bg-slate-700 rounded-lg p-1">
+          <div className="flex bg-[#F3F4F6] rounded-[12px] p-1">
             <button 
               onClick={() => setInputMode('chat')}
-              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'chat' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-300 hover:text-white')}
+              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'chat' ? 'bg-[var(--color-accent)] text-white font-semibold shadow' : 'text-[#6B6B6B] hover:text-[#111111]')}
             >
               Chat Mode
             </button>
             <button 
               onClick={() => setInputMode('voice')}
-              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'voice' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-300 hover:text-white')}
+              className={'px-4 py-1.5 text-sm rounded-md transition ' + (inputMode === 'voice' ? 'bg-[var(--color-accent)] text-white font-semibold shadow' : 'text-[#6B6B6B] hover:text-[#111111]')}
             >
               Voice Mode
             </button>
@@ -352,14 +352,14 @@ function Chat({ user }) {
             <button 
               onClick={endSession}
               disabled={isEnding}
-              className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold shadow transition disabled:opacity-50"
+              className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-[12px] text-sm font-semibold shadow transition disabled:opacity-50"
             >
               {isEnding ? 'Grading...' : 'End Session'}
             </button>
           ) : (
             <button 
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-sm font-bold shadow transition"
+              className="px-6 py-2 bg-slate-600 hover:bg-[#FAFAFA]0 text-white rounded-[12px] text-sm font-semibold shadow transition"
             >
               &larr; Dashboard
             </button>
@@ -369,25 +369,25 @@ function Chat({ user }) {
 
       {!sessionActive ? (
         <div className="flex-1 flex flex-col items-center justify-center">
-           <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold mb-6 text-slate-800 text-center">Setup Training Scenario</h2>
-              {error && <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded-lg mb-6 text-center">{error}</div>}
+           <div className="w-full max-w-4xl bg-white rounded-[16px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-8">
+              <h2 className="text-[24px] tracking-[-0.02em] font-semibold mb-6 text-[#111111] text-center">Setup Training Scenario</h2>
+              {error && <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded-[12px] mb-6 text-center">{error}</div>}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-slate-700 border-b pb-2">1. Choose Persona</h3>
+                  <h3 className="text-[16px] font-semibold text-[#111111] border-b pb-2">1. Choose Persona</h3>
                   {personas.length === 0 ? (
-                    <p className="text-slate-500">Loading personas...</p>
+                    <p className="text-[#6B6B6B]">Loading personas...</p>
                   ) : (
                     <div className="space-y-3">
                       {personas.map(p => (
                         <div 
                           key={p.id}
                           onClick={() => handlePersonaSelect(p)}
-                          className={'p-4 border rounded-xl cursor-pointer transition ' + (selectedPersona?.id === p.id ? 'border-blue-500 bg-blue-50 shadow-md ring-1 ring-blue-500' : 'hover:bg-slate-50')}
+                          className={'p-4 border rounded-[16px] cursor-pointer transition ' + (selectedPersona?.id === p.id ? 'border-[var(--color-accent)] bg-indigo-50/50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-[var(--color-accent)]' : 'hover:bg-[#FAFAFA]')}
                         >
-                          <h4 className="font-bold text-slate-800">{p.name}</h4>
-                          <p className="text-sm text-slate-600 mt-1">{p.description}</p>
+                          <h4 className="font-semibold text-[#111111]">{p.name}</h4>
+                          <p className="text-sm text-[#6B6B6B] mt-1">{p.description}</p>
                         </div>
                       ))}
                     </div>
@@ -395,12 +395,12 @@ function Chat({ user }) {
                 </div>
 
                 <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-slate-700 border-b pb-2">2. Customize Starting State</h3>
+                  <h3 className="text-[16px] font-semibold text-[#111111] border-b pb-2">2. Customize Starting State</h3>
                   {selectedPersona && customFactors ? (
-                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-inner space-y-5">
+                    <div className="bg-[#FAFAFA] p-6 rounded-[16px] border border-[#E5E7EB] shadow-inner space-y-5">
                       {Object.keys(customFactors).map(factor => (
                         <div key={factor} className="flex flex-col gap-2">
-                          <div className="flex justify-between text-sm font-bold text-slate-700 capitalize">
+                          <div className="flex justify-between text-sm font-semibold text-[#111111] capitalize">
                             <span>{factor}</span>
                             <span className="bg-white px-2 py-0.5 rounded shadow-sm">{customFactors[factor]}/10</span>
                           </div>
@@ -417,13 +417,13 @@ function Chat({ user }) {
                       <button 
                         onClick={startSession}
                         disabled={loading}
-                        className="w-full mt-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-lg shadow-lg transition disabled:opacity-50"
+                        className="w-full mt-6 py-4 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white rounded-[16px] font-semibold text-[16px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] transition disabled:opacity-50"
                       >
                         {loading ? 'Generating Customer...' : 'Start Session'}
                       </button>
                     </div>
                   ) : (
-                    <p className="text-slate-500 italic">Select a persona first.</p>
+                    <p className="text-[#6B6B6B] italic">Select a persona first.</p>
                   )}
                 </div>
               </div>
@@ -433,42 +433,42 @@ function Chat({ user }) {
         <div className="flex-1 flex gap-4 overflow-hidden">
           
           {/* CRM Dashboard Sidebar */}
-          <div className="w-80 bg-white rounded-xl shadow-lg flex flex-col shrink-0 border border-slate-200">
-            <div className="bg-slate-100 p-4 border-b border-slate-200 rounded-t-xl">
-              <h2 className="font-black text-slate-700 flex items-center gap-2">
-                <span className="text-blue-600">📊</span> CRM Dashboard
+          <div className="w-80 bg-white rounded-[16px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] flex flex-col shrink-0 border border-[#E5E7EB]">
+            <div className="bg-slate-100 p-4 border-b border-[#E5E7EB] rounded-t-xl">
+              <h2 className="font-semibold text-[#111111] flex items-center gap-2">
+                <span className="text-[var(--color-accent)]">📊</span> CRM Dashboard
               </h2>
             </div>
             
             <div className="p-5 flex-1 overflow-y-auto space-y-6">
               {crmData ? (
                 Object.entries(crmData).map(([key, value]) => (
-                  <div key={key} className="flex flex-col gap-1 border-b border-slate-100 pb-3 last:border-0">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                  <div key={key} className="flex flex-col gap-1 border-b border-[#F3F4F6] pb-3 last:border-0">
+                    <span className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
-                    <span className="text-slate-800 font-semibold">{value}</span>
+                    <span className="text-[#111111] font-semibold">{value}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-slate-400 italic">No CRM data available.</div>
+                <div className="text-sm text-[#9CA3AF] italic">No CRM data available.</div>
               )}
             </div>
           </div>
 
           {/* Main Chat Area */}
-          <div className="flex-1 bg-white rounded-xl shadow-lg flex flex-col overflow-hidden border border-slate-200 relative">
+          <div className="flex-1 bg-white rounded-[16px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden border border-[#E5E7EB] relative">
             
             {/* Factors Top Bar */}
-            <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 shrink-0 shadow-sm z-10">
+            <div className="bg-[#FAFAFA] border-b border-[#E5E7EB] px-5 py-4 shrink-0 shadow-sm z-10">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-black text-slate-800 text-lg">{selectedPersona.name}</span>
-                <span className="text-[10px] text-white bg-slate-800 px-2 py-1 rounded uppercase tracking-widest font-bold">Live Emotional State</span>
+                <span className="font-semibold text-[#111111] text-[16px]">{selectedPersona.name}</span>
+                <span className="text-[10px] text-white bg-slate-800 px-2 py-1 rounded uppercase tracking-widest font-semibold">Live Emotional State</span>
               </div>
               <div className="grid grid-cols-5 gap-3">
                 {Object.keys(currentFactors).map(factor => (
-                  <div key={factor} className="flex flex-col gap-1.5 bg-white p-2.5 rounded-lg shadow-sm border border-slate-100">
-                    <div className="flex justify-between text-[11px] font-black text-slate-500 capitalize tracking-wide">
+                  <div key={factor} className="flex flex-col gap-1.5 bg-white p-2.5 rounded-[12px] shadow-sm border border-[#F3F4F6]">
+                    <div className="flex justify-between text-[11px] font-semibold text-[#6B6B6B] capitalize tracking-wide">
                       <span>{factor}</span>
                       <span>{currentFactors[factor]}/10</span>
                     </div>
@@ -484,7 +484,7 @@ function Chat({ user }) {
             </div>
 
             {/* Chat History */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FAFAFA]">
               {messages.map((msg, idx) => (
                 <div 
                   key={idx} 
@@ -492,16 +492,16 @@ function Chat({ user }) {
                 >
                   <div className="flex items-center gap-2 mb-1.5">
                     {msg.role === 'user' && msg.inputMode === 'voice' && (
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-blue-200">
+                      <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-indigo-200">
                         🎤 Voice Match
                       </span>
                     )}
                   </div>
                   <div 
-                    className={'max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm text-[15px] ' + (
+                    className={'max-w-[75%] rounded-[16px] px-5 py-3.5 shadow-sm text-[15px] ' + (
                       msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-tr-sm' 
-                        : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm'
+                        ? 'bg-[var(--color-accent)] text-white rounded-tr-[4px]' 
+                        : 'bg-[#F3F4F6] text-[#111111] rounded-tl-[4px] border-none shadow-none'
                     )}
                   >
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -509,15 +509,15 @@ function Chat({ user }) {
                   
                   {/* Classifier & Deltas Badge */}
                   {msg.role === 'assistant' && msg.category && msg.category !== 'initial' && (
-                    <div className="mt-2 text-xs bg-white border border-slate-200 rounded-lg shadow-sm max-w-[75%] overflow-hidden">
-                      <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-100 font-semibold text-slate-500 flex items-center gap-2">
+                    <div className="mt-2 text-xs bg-white border border-[#E5E7EB] rounded-[12px] shadow-sm max-w-[75%] overflow-hidden">
+                      <div className="bg-[#FAFAFA] px-3 py-1.5 border-b border-[#F3F4F6] font-semibold text-[#6B6B6B] flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-sm"></span>
-                        Behavior logic: <span className="font-black text-indigo-700 uppercase tracking-wider">{msg.category}</span>
+                        Behavior logic: <span className="font-semibold text-indigo-700 uppercase tracking-wider">{msg.category}</span>
                       </div>
                       {msg.deltas && Object.keys(msg.deltas).length > 0 && (
                         <div className="px-3 py-2 flex flex-wrap gap-3 text-[11px] uppercase tracking-wider">
                           {Object.values(msg.deltas).every(v => v === 0) ? (
-                            <span className="text-slate-400 italic normal-case tracking-normal">Max/Min limits reached (or neutral). No effect.</span>
+                            <span className="text-[#9CA3AF] italic normal-case tracking-normal">Max/Min limits reached (or neutral). No effect.</span>
                           ) : (
                             Object.entries(msg.deltas).map(([f, change], i) => {
                               if (change === 0) return null;
@@ -525,7 +525,7 @@ function Chat({ user }) {
                               const isFrustration = f === 'frustration';
                               const isGood = isFrustration ? !isPositive : isPositive;
                               return (
-                                <div key={i} className={'flex items-center gap-1 font-black ' + (isGood ? 'text-emerald-600' : 'text-rose-500')}>
+                                <div key={i} className={'flex items-center gap-1 font-semibold ' + (isGood ? 'text-emerald-600' : 'text-rose-500')}>
                                   <span className="capitalize">{f}</span>
                                   <span>{formatDelta(change)}</span>
                                 </div>
@@ -540,17 +540,17 @@ function Chat({ user }) {
               ))}
               
               {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-slate-200 text-slate-400 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex gap-1.5 items-center">
-                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full"></span>
-                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="animate-bounce h-2 w-2 bg-slate-300 rounded-full" style={{ animationDelay: '0.4s' }}></span>
+                <div className="flex justify-start animate-slide-up">
+                  <div className="bg-[#F3F4F6] rounded-[16px] rounded-tl-[4px] px-5 py-4 w-2/3 max-w-[300px] flex flex-col gap-2">
+                    <div className="skeleton h-4 w-full rounded"></div>
+                    <div className="skeleton h-4 w-5/6 rounded"></div>
+                    <div className="skeleton h-4 w-4/6 rounded"></div>
                   </div>
                 </div>
               )}
               
               {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center text-sm font-medium border border-red-200 shadow-sm mx-auto max-w-lg">
+                <div className="bg-red-50 text-red-600 p-4 rounded-[16px] text-center text-sm font-medium border border-red-200 shadow-sm mx-auto max-w-lg">
                   {error}
                 </div>
               )}
@@ -558,11 +558,11 @@ function Chat({ user }) {
             </div>
 
             {/* Input Bar */}
-            <div className="p-4 bg-white border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.02)] relative shrink-0">
+            <div className="p-4 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_15px_rgba(0,0,0,0.02)] relative shrink-0">
               
               {/* Auto Message Pill */}
               {autoMessage && (
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[11px] font-bold px-4 py-2 rounded-full shadow-lg animate-bounce tracking-wide">
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white text-[#111111] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] border border-[#E5E7EB] text-[11px] font-semibold px-4 py-2 rounded-full shadow-[0_4px_24px_rgba(0,0,0,0.04)] animate-bounce tracking-wide">
                   {autoMessage}
                 </div>
               )}
@@ -575,12 +575,12 @@ function Chat({ user }) {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Type your reply to the customer..."
                     disabled={loading}
-                    className="flex-1 px-5 py-3.5 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 transition shadow-inner"
+                    className="flex-1 px-5 py-3.5 border border-[#E5E7EB] rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-[var(--color-accent)] disabled:bg-[#FAFAFA] transition shadow-inner"
                   />
                   <button 
                     type="submit"
                     disabled={!input.trim() || loading}
-                    className="px-8 py-3.5 bg-blue-600 text-white font-black rounded-full hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:shadow-none transform active:scale-95"
+                    className="px-8 py-3.5 bg-[var(--color-accent)] text-white font-semibold rounded-full hover:bg-[var(--color-accent-hover)] transition shadow-[0_2px_8px_rgba(0,0,0,0.04)] disabled:opacity-50 disabled:shadow-none transform active:scale-95"
                   >
                     Send
                   </button>
@@ -588,27 +588,30 @@ function Chat({ user }) {
               ) : (
                 <div className="flex justify-center items-center h-[54px]">
                   {!SpeechRecognition ? (
-                    <div className="text-rose-500 font-bold bg-rose-50 px-6 py-2 rounded-full border border-rose-200">
+                    <div className="text-rose-500 font-semibold bg-rose-50 px-6 py-2 rounded-full border border-rose-200">
                       Voice input is not supported in this browser. Please use Chat Mode.
                     </div>
                   ) : (
                     <button
                       onClick={toggleRecording}
                       disabled={loading || isSubmittingRef.current}
-                      className={'flex items-center gap-3 px-12 py-3.5 rounded-full font-black text-white transition-all shadow-md ' + 
+                      className={'relative flex items-center justify-center gap-3 px-12 py-3.5 rounded-full font-medium text-white transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] ' + 
                         (isRecording 
-                          ? 'bg-rose-500 hover:bg-rose-600 animate-pulse shadow-rose-200' 
-                          : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200') + 
-                        ((loading || isSubmittingRef.current) ? ' opacity-50 cursor-not-allowed transform-none' : ' hover:-translate-y-0.5 active:scale-95')}
+                          ? 'bg-rose-500 hover:bg-rose-600' 
+                          : 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]') + 
+                        ((loading || isSubmittingRef.current) ? ' opacity-50 cursor-not-allowed transform-none' : ' active:scale-[0.97]')}
                     >
+                      {isRecording && (
+                        <div className="absolute inset-0 rounded-full border-2 border-rose-500 animate-pulse-ring pointer-events-none"></div>
+                      )}
                       {isRecording ? (
                         <>
-                          <span className="w-3 h-3 bg-white rounded-full"></span>
+                          <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>
                           Listening... (Auto-submits on pause)
                         </>
                       ) : (
                         <>
-                          <span className="text-lg">🎤</span>
+                          <span className="text-[18px]">🎤</span>
                           {loading ? 'Sending...' : 'Tap to Start Listening'}
                         </>
                       )}
