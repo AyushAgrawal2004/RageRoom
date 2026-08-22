@@ -71,13 +71,13 @@ function Session({ user }) {
       }
       clearInterval(silenceCheckIntervalRef.current);
       clearTimeout(totalSilenceTimeoutRef.current);
-      window.speechSynthesis.cancel();
+      // // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug removed to prevent Chrome freezing bug
     };
   }, []);
 
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
       const utterance = new SpeechSynthesisUtterance(text);
       
       utterance.onstart = () => setIsCustomerSpeaking(true);
@@ -140,7 +140,7 @@ function Session({ user }) {
       if (!confirmEnd) return;
     }
 
-    window.speechSynthesis.cancel();
+    // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsRecording(false);
@@ -199,7 +199,7 @@ function Session({ user }) {
     setLoading(true);
     setError(null);
     
-    window.speechSynthesis.cancel();
+    // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsRecording(false);
