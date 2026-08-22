@@ -231,7 +231,8 @@ function Session({ user }) {
         content: response.data.reply,
         factors: response.data.factors,
         category: response.data.category,
-        deltas: response.data.deltas
+        deltas: response.data.deltas,
+        isHangup: response.data.isHangup
       };
       setMessages([...newMessages, assistantMsg]);
       setCurrentFactors(assistantMsg.factors);
