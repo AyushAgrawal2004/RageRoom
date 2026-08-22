@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Zap, LayoutDashboard, BarChart3, Settings, LogOut, Plus, ChevronRight, Activity, Target, ShieldCheck, Clock, Award, ShieldAlert, Star } from 'lucide-react';
+import { Zap, LayoutDashboard, BarChart3, Settings, LogOut, Plus, ChevronRight, Activity, Target, ShieldCheck, Clock, Award, ShieldAlert, Star, Trophy } from 'lucide-react';
 
 function Dashboard({ user, logout }) {
   const [sessions, setSessions] = useState([]);
