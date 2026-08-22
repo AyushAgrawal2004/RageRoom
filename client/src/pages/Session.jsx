@@ -81,18 +81,23 @@ function Session({ user }) {
 
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      // Chrome bug: cancelling immediately before speaking can cancel the NEXT utterance too.
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Try to find a good English voice so it doesn't fail silently
+      // Chrome/Safari bug: utterance is garbage collected if not stored globally
+      window.currentUtterance = utterance;
+      
       const voices = window.speechSynthesis.getVoices();
-      const enVoice = voices.find(v => v.lang.startsWith('en-') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Premium')));
+      const enVoice = voices.find(v => v.lang.startsWith('en-') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Premium'))) || voices[0];
       if (enVoice) utterance.voice = enVoice;
       
-      // Safety timeout: if onstart doesn't fire within 1s, force the UI state
       const fallbackTimeout = setTimeout(() => {
         setIsCustomerSpeaking(true);
-      }, 1000);
+      }, 500);
       
       utterance.onstart = () => {
         clearTimeout(fallbackTimeout);
@@ -111,8 +116,16 @@ function Session({ user }) {
           }, 400); 
         }
       };
+      
+      utterance.onerror = (e) => {
+        console.error('SpeechSynthesis error:', e);
+        setIsCustomerSpeaking(false);
+      };
 
-      window.speechSynthesis.speak(utterance);
+      // Slight timeout to let cancel() resolve
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
     }
   };
 

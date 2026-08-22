@@ -38,10 +38,10 @@ function Scenarios({ user }) {
   }, [user]);
 
   const handleStart = (personaId, mode) => {
-    // Wake up the browser's speech synthesis engine synchronously on click to bypass autoplay restrictions
     if (mode === 'call' && 'speechSynthesis' in window) {
-      const wakeUp = new SpeechSynthesisUtterance('');
-      wakeUp.volume = 0;
+      const wakeUp = new SpeechSynthesisUtterance(' ');
+      wakeUp.volume = 0.01;
+      window.wakeUpUtterance = wakeUp; // prevent GC
       window.speechSynthesis.speak(wakeUp);
     }
     navigate('/session', { state: { selectedPersonaId: personaId, mode } });
