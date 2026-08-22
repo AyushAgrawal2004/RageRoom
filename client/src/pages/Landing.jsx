@@ -26,15 +26,15 @@ function Landing({ user }) {
     offset: ["start start", "end end"]
   });
 
-  // Storytelling Opacities (Crisp Mobbin Style) - must go to 0 to prevent overlap!
-  const op1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.25, 0.35, 0.60, 0.70], [0, 1, 1, 0]);
-  const op3 = useTransform(scrollYProgress, [0.60, 0.70, 1], [0, 1, 1]);
+  // Storytelling Opacities (Crisp Mobbin Style) - must map full 0 to 1 range to prevent extrapolation bugs
+  const op1 = useTransform(scrollYProgress, [0, 0.25, 0.35, 1], [1, 1, 0, 0]);
+  const op2 = useTransform(scrollYProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [0, 0, 1, 1, 0, 0]);
+  const op3 = useTransform(scrollYProgress, [0, 0.60, 0.70, 1], [0, 0, 1, 1]);
 
   // Storytelling Y Translate for smooth sliding
-  const y1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [0, 0, -50]);
-  const y2 = useTransform(scrollYProgress, [0.25, 0.35, 0.60, 0.70], [50, 0, 0, -50]);
-  const y3 = useTransform(scrollYProgress, [0.60, 0.70, 1], [50, 0, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.25, 0.35, 1], [0, 0, -50, -50]);
+  const y2 = useTransform(scrollYProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [50, 50, 0, 0, -50, -50]);
+  const y3 = useTransform(scrollYProgress, [0, 0.60, 0.70, 1], [50, 50, 0, 0]);
 
   return (
     <div className="bg-white min-h-screen font-sans selection:bg-indigo-100">
