@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { Zap, ShieldAlert, Award, BrainCircuit, Activity, Users, Star, ArrowRight, Play, MessageSquare, Briefcase, Heart, Cloud, Shield, Coffee, Box, Music, Video, ShoppingBag } from 'lucide-react';
 
 // Premium Apple-style App Icons
@@ -26,15 +26,22 @@ function Landing({ user }) {
     offset: ["start start", "end end"]
   });
 
+  // Add inertia/spring physics to smooth out abrupt mouse-wheel scrolling
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   // Storytelling Opacities (Crisp Mobbin Style) - must map full 0 to 1 range to prevent extrapolation bugs
-  const op1 = useTransform(scrollYProgress, [0, 0.25, 0.35, 1], [1, 1, 0, 0]);
-  const op2 = useTransform(scrollYProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [0, 0, 1, 1, 0, 0]);
-  const op3 = useTransform(scrollYProgress, [0, 0.60, 0.70, 1], [0, 0, 1, 1]);
+  const op1 = useTransform(smoothProgress, [0, 0.25, 0.35, 1], [1, 1, 0, 0]);
+  const op2 = useTransform(smoothProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [0, 0, 1, 1, 0, 0]);
+  const op3 = useTransform(smoothProgress, [0, 0.60, 0.70, 1], [0, 0, 1, 1]);
 
   // Storytelling Y Translate for smooth sliding
-  const y1 = useTransform(scrollYProgress, [0, 0.25, 0.35, 1], [0, 0, -50, -50]);
-  const y2 = useTransform(scrollYProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [50, 50, 0, 0, -50, -50]);
-  const y3 = useTransform(scrollYProgress, [0, 0.60, 0.70, 1], [50, 50, 0, 0]);
+  const y1 = useTransform(smoothProgress, [0, 0.25, 0.35, 1], [0, 0, -50, -50]);
+  const y2 = useTransform(smoothProgress, [0, 0.25, 0.35, 0.60, 0.70, 1], [50, 50, 0, 0, -50, -50]);
+  const y3 = useTransform(smoothProgress, [0, 0.60, 0.70, 1], [50, 50, 0, 0]);
 
   return (
     <div className="bg-white min-h-screen font-sans selection:bg-indigo-100">
