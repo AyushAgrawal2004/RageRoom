@@ -418,7 +418,16 @@ app.post('/api/end', async (req, res) => {
     });
     
     const startingFactors = conversation.startingFactors;
-    const finalFactors = conversation.messages[conversation.messages.length - 1].factors;
+    
+    // Find the final factors from the last assistant message
+    let finalFactors = conversation.startingFactors;
+    for (let i = conversation.messages.length - 1; i >= 0; i--) {
+      if (conversation.messages[i].role === 'assistant' && conversation.messages[i].factors) {
+        finalFactors = conversation.messages[i].factors;
+        break;
+      }
+    }
+
 
     // Call the LLM judge for category scores and feedback
     const reportCard = await generateReportCard(transcript, startingFactors, finalFactors, agentTurnCount);
