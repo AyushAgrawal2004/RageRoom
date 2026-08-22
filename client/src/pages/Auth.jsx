@@ -4,12 +4,11 @@ import axios from 'axios';
 import { Zap, Heart, Search, User, Menu, Home, Bell, Settings, Share, Image as ImageIcon, MessageCircle } from 'lucide-react';
 
 // Reusable mobile screen skeleton
-const MobileScreen = ({ children, bg = "bg-white" }) => (
-  <div className={`${bg} rounded-[32px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border-[6px] border-slate-100 w-[240px] h-[520px] mb-6 flex-shrink-0 flex flex-col overflow-hidden relative`}>
-    <div className="absolute top-0 inset-x-0 h-6 flex justify-center items-start pt-2">
-      <div className="w-16 h-4 bg-slate-200 rounded-full"></div>
-    </div>
-    <div className="mt-6 flex-1 flex flex-col">
+const MobileScreen = ({ children, bg = "bg-white", title }) => (
+  <div className={`${bg} rounded-[32px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-[8px] border-[#18181B] w-[260px] h-[540px] mb-6 flex-shrink-0 flex flex-col overflow-hidden relative`}>
+    {/* iOS Notch Mockup */}
+    <div className="absolute top-0 inset-x-0 h-7 flex justify-center items-start bg-[#18181B] rounded-b-xl w-[120px] mx-auto z-10"></div>
+    <div className="mt-4 flex-1 flex flex-col relative z-0">
       {children}
     </div>
   </div>
@@ -17,110 +16,121 @@ const MobileScreen = ({ children, bg = "bg-white" }) => (
 
 const MockFeedScreen = () => (
   <MobileScreen>
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-xl font-bold text-slate-800 tracking-tight">For You</h2>
-      <Search size={20} className="text-slate-400" />
+    <div className="flex justify-between items-center mb-6 mt-2">
+      <h2 className="text-[22px] font-black text-slate-900 tracking-tight">Active Tickets</h2>
+      <Search size={22} className="text-slate-400" />
     </div>
-    <div className="flex-1 flex flex-col gap-5">
-      {[1, 2].map((i) => (
-        <div key={i} className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-100"></div>
-            <div className="w-24 h-3 bg-slate-200 rounded-full"></div>
+    <div className="flex-1 flex flex-col gap-4">
+      {[{ name: "John Doe", issue: "Refund denied!", time: "2m ago" }, { name: "Angry User", issue: "Account locked", time: "15m ago" }].map((t, i) => (
+        <div key={i} className="flex flex-col gap-3 p-4 bg-red-50 rounded-2xl border border-red-100">
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-red-900">{t.name}</span>
+            <span className="text-xs font-semibold text-red-400">{t.time}</span>
           </div>
-          <div className="w-full h-40 bg-slate-100 rounded-2xl flex items-center justify-center">
-            <ImageIcon size={32} className="text-slate-300" />
+          <p className="text-sm text-red-700 font-medium">"{t.issue}"</p>
+          <div className="w-full h-10 bg-red-600 rounded-xl mt-2 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            Handle Ticket
           </div>
-          <div className="w-3/4 h-3 bg-slate-200 rounded-full"></div>
-          <div className="w-1/2 h-3 bg-slate-200 rounded-full"></div>
         </div>
       ))}
     </div>
-    <div className="h-12 w-full bg-slate-50 mt-auto rounded-full flex justify-around items-center px-2">
-       <Home size={20} className="text-slate-800" />
-       <Search size={20} className="text-slate-400" />
-       <Heart size={20} className="text-slate-400" />
-       <User size={20} className="text-slate-400" />
+    <div className="h-14 w-full bg-slate-100 mt-auto rounded-[20px] flex justify-around items-center px-2">
+       <Home size={22} className="text-slate-800" />
+       <MessageCircle size={22} className="text-slate-400" />
+       <Bell size={22} className="text-slate-400" />
+       <User size={22} className="text-slate-400" />
     </div>
   </MobileScreen>
 );
 
 const MockChatScreen = () => (
   <MobileScreen bg="bg-slate-50">
-    <div className="flex justify-between items-center mb-6 bg-white p-3 rounded-2xl shadow-sm">
+    <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mt-2">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center">
-          <span className="text-rose-600 font-bold">AK</span>
+          <span className="text-rose-600 font-bold text-lg">🤬</span>
         </div>
-        <div className="w-20 h-3 bg-slate-200 rounded-full"></div>
+        <div>
+          <div className="font-bold text-slate-900">Karen M.</div>
+          <div className="text-xs font-bold text-rose-500 uppercase tracking-wider">Level 10 Irate</div>
+        </div>
       </div>
-      <Menu size={20} className="text-slate-400" />
     </div>
     <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-      <div className="self-start max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
-        <div className="w-32 h-2 bg-slate-200 rounded-full mb-2"></div>
-        <div className="w-24 h-2 bg-slate-200 rounded-full"></div>
+      <div className="self-start max-w-[85%] bg-white p-4 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100">
+        <p className="text-sm font-medium text-slate-800">I HAVE BEEN WAITING FOR 40 MINUTES! THIS IS UNACCEPTABLE!</p>
       </div>
-      <div className="self-end max-w-[80%] bg-indigo-600 p-3 rounded-2xl rounded-tr-sm shadow-sm">
-        <div className="w-36 h-2 bg-indigo-200 rounded-full mb-2"></div>
-        <div className="w-20 h-2 bg-indigo-200 rounded-full"></div>
+      <div className="self-end max-w-[85%] bg-indigo-600 p-4 rounded-2xl rounded-tr-sm shadow-md text-white">
+        <p className="text-sm font-medium">I sincerely apologize for the delay. Let me fix this right now.</p>
       </div>
-      <div className="self-start max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
-        <div className="w-40 h-2 bg-slate-200 rounded-full mb-2"></div>
-        <div className="w-32 h-2 bg-slate-200 rounded-full mb-2"></div>
-        <div className="w-16 h-2 bg-slate-200 rounded-full"></div>
+      <div className="self-center my-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
+        Empathy +15
+      </div>
+      <div className="self-start max-w-[85%] bg-white p-4 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100">
+        <p className="text-sm font-medium text-slate-800">You better! I want to speak to your manager!</p>
       </div>
     </div>
-    <div className="h-12 w-full bg-white mt-auto rounded-full shadow-sm flex items-center px-4">
-      <div className="w-full h-3 bg-slate-100 rounded-full"></div>
+    <div className="h-14 w-full bg-white mt-auto rounded-full shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex items-center px-5 gap-3 border border-slate-100">
+      <span className="text-xl">🎤</span>
+      <div className="w-full h-4 bg-slate-100 rounded-full"></div>
     </div>
   </MobileScreen>
 );
 
 const MockProfileScreen = () => (
   <MobileScreen>
-    <div className="flex justify-between items-center mb-6">
-      <Settings size={20} className="text-slate-800" />
-      <Share size={20} className="text-slate-800" />
+    <div className="flex justify-between items-center mb-8 mt-2">
+      <h2 className="text-[22px] font-black text-slate-900 tracking-tight">Report Card</h2>
+      <Share size={22} className="text-slate-800" />
     </div>
-    <div className="flex flex-col items-center mb-6">
-      <div className="w-24 h-24 rounded-full bg-emerald-100 mb-4"></div>
-      <div className="w-32 h-4 bg-slate-800 rounded-full mb-2"></div>
-      <div className="w-20 h-3 bg-slate-400 rounded-full"></div>
+    <div className="flex flex-col items-center mb-8">
+      <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-100 flex items-center justify-center mb-4">
+        <span className="text-4xl font-black text-emerald-500">A+</span>
+      </div>
+      <div className="text-xl font-bold text-slate-900 mb-1">Session #402</div>
+      <div className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Passed Simulation</div>
     </div>
-    <div className="flex justify-center gap-8 mb-8">
-      <div className="text-center"><div className="w-8 h-4 bg-slate-800 rounded-full mb-1 mx-auto"></div><div className="w-12 h-2 bg-slate-300 rounded-full"></div></div>
-      <div className="text-center"><div className="w-8 h-4 bg-slate-800 rounded-full mb-1 mx-auto"></div><div className="w-12 h-2 bg-slate-300 rounded-full"></div></div>
-      <div className="text-center"><div className="w-8 h-4 bg-slate-800 rounded-full mb-1 mx-auto"></div><div className="w-12 h-2 bg-slate-300 rounded-full"></div></div>
+    <div className="grid grid-cols-2 gap-4 mb-auto">
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+        <div className="text-2xl font-black text-indigo-600">9/10</div>
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">Empathy</div>
+      </div>
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+        <div className="text-2xl font-black text-indigo-600">8/10</div>
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">Patience</div>
+      </div>
     </div>
-    <div className="w-full h-12 bg-slate-900 rounded-xl mb-4"></div>
-    <div className="w-full h-12 bg-slate-100 rounded-xl"></div>
+    <div className="w-full bg-slate-900 text-white font-bold rounded-xl py-4 text-center mt-4 shadow-lg shadow-slate-900/20">
+      Start Next Level
+    </div>
   </MobileScreen>
 );
 
 const MockAnalyticsScreen = () => (
   <MobileScreen bg="bg-indigo-900">
-    <div className="flex justify-between items-center mb-8">
-      <div className="w-8 h-8 rounded-full bg-indigo-800"></div>
-      <Bell size={20} className="text-indigo-200" />
+    <div className="flex justify-between items-center mb-8 mt-2">
+      <h2 className="text-[22px] font-black text-white tracking-tight">Analytics</h2>
+      <Bell size={22} className="text-indigo-200" />
     </div>
-    <div className="w-24 h-3 bg-indigo-300 rounded-full mb-2"></div>
-    <div className="w-40 h-8 bg-white rounded-full mb-8"></div>
+    <div className="text-indigo-200 text-sm font-semibold mb-1 uppercase tracking-wider">Total Score</div>
+    <div className="text-5xl font-black text-white mb-8">89.4<span className="text-2xl text-indigo-400">/100</span></div>
     
-    <div className="flex items-end gap-2 h-32 mb-8 border-b border-indigo-800 pb-2">
+    <div className="flex items-end gap-3 h-32 mb-8 border-b border-indigo-800/50 pb-4">
       {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
-        <div key={i} className="flex-1 bg-indigo-500 rounded-t-sm" style={{ height: `${h}%` }}></div>
+        <div key={i} className="flex-1 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-sm relative group">
+           {h === 100 && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-white bg-indigo-500 px-2 py-0.5 rounded-md">Max</div>}
+        </div>
       ))}
     </div>
     
     <div className="grid grid-cols-2 gap-4">
-      <div className="bg-indigo-800 p-4 rounded-2xl">
-        <div className="w-8 h-8 bg-indigo-700 rounded-full mb-2"></div>
-        <div className="w-16 h-2 bg-indigo-300 rounded-full"></div>
+      <div className="bg-indigo-800/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-700/50">
+        <div className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-2">Simulations</div>
+        <div className="text-2xl font-black text-white">1,428</div>
       </div>
-      <div className="bg-indigo-800 p-4 rounded-2xl">
-        <div className="w-8 h-8 bg-indigo-700 rounded-full mb-2"></div>
-        <div className="w-16 h-2 bg-indigo-300 rounded-full"></div>
+      <div className="bg-indigo-800/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-700/50">
+        <div className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-2">Win Rate</div>
+        <div className="text-2xl font-black text-emerald-400">92%</div>
       </div>
     </div>
   </MobileScreen>
@@ -262,9 +272,11 @@ function Auth({ setAuthToken }) {
           </div>
         </div>
         
-        {/* Soft Vignette Overlays for depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-transparent to-[#FAFAFA] opacity-90"></div>
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#0A0A0A] opacity-20"></div>
+        {/* Top and Bottom fade overlays to hide raw edges */}
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
+        {/* Left fade to blend with black section */}
+        <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#0A0A0A] to-transparent opacity-10 z-10 pointer-events-none"></div>
       </div>
 
     </div>
