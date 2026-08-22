@@ -6,7 +6,7 @@ const messageSchema = new mongoose.Schema({
   factors: { type: Map, of: Number },
   category: { type: String },
   deltas: { type: Map, of: Number },
-  inputMode: { type: String, enum: ['chat', 'voice'], default: 'chat' },
+  inputMode: { type: String, enum: ['chat', 'voice', 'call'], default: 'chat' },
   timestamp: { type: Date, default: Date.now }
 });
 
