@@ -128,9 +128,7 @@ function Session({ user }) {
       setCurrentFactors(response.data.message.factors);
       setCrmData(response.data.crmData);
       setSessionActive(true);
-      if (location.state?.mode !== 'call') {
-        speakText(response.data.message.content);
-      }
+      // TTS is only used for Voice Call mode, which is triggered via handleAcceptCall
     } catch (err) {
       console.error('Error starting session:', err);
       setError('Failed to start session. Please try again.');
@@ -238,7 +236,9 @@ function Session({ user }) {
         return;
       }
       
-      speakText(assistantMsg.content);
+      if (inputModeRef.current === 'call') {
+        speakText(assistantMsg.content);
+      }
 
     } catch (err) {
       console.error('Chat error:', err);
