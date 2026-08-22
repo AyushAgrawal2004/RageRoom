@@ -81,7 +81,7 @@ function Session({ user }) {
     };
   }, []);
 
-  const speakText = (text) => {
+  const speakText = (text, isHangup = false) => {
     if ('speechSynthesis' in window) {
       // window.speechSynthesis.cancel(); removed to prevent Chrome freezing bug
       const utterance = new SpeechSynthesisUtterance(text);
@@ -90,6 +90,12 @@ function Session({ user }) {
       
       utterance.onend = () => {
         setIsCustomerSpeaking(false);
+        if (isHangup) {
+           alert("The customer hung up on you! Generating report...");
+           endSession();
+           return;
+        }
+        
         if (inputModeRef.current === 'call' && !isRecording && SpeechRecognition) {
           setTimeout(() => {
             try {
@@ -230,14 +236,19 @@ function Session({ user }) {
       setMessages([...newMessages, assistantMsg]);
       setCurrentFactors(assistantMsg.factors);
       
-      if (assistantMsg.category === 'escalate' || assistantMsg.category === 'hangup') {
-        alert(assistantMsg.category === 'hangup' ? "The customer hung up on you!" : "The customer demanded to speak to a manager!");
-        endSession();
-        return;
+      // If the customer hung up, we let the AI speak the final message, and then end the session.
+      if (assistantMsg.isHangup) {
+         // It will be handled in speakText onend or setTimeout for text chat
+         if (inputModeRef.current !== 'call') {
+            setTimeout(() => {
+               alert("The customer hung up on you! Ending session...");
+               endSession();
+            }, 3000);
+         }
       }
       
       if (inputModeRef.current === 'call') {
-        speakText(assistantMsg.content);
+        speakText(assistantMsg.content, assistantMsg.isHangup);
       }
 
     } catch (err) {
