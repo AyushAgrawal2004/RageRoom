@@ -38,12 +38,6 @@ function Scenarios({ user }) {
   }, [user]);
 
   const handleStart = (personaId, mode) => {
-    if (mode === 'call' && 'speechSynthesis' in window) {
-      const wakeUp = new SpeechSynthesisUtterance(' ');
-      wakeUp.volume = 0.01;
-      window.wakeUpUtterance = wakeUp; // prevent GC
-      window.speechSynthesis.speak(wakeUp);
-    }
     navigate('/session', { state: { selectedPersonaId: personaId, mode } });
   };
 

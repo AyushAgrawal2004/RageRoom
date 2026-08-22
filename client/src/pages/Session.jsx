@@ -43,11 +43,6 @@ function Session({ user }) {
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
-    // Pre-load voices to ensure they are available when speakText is called
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-    }
-
     if (!selectedPersonaId) {
       navigate('/scenarios');
     } else {
@@ -81,28 +76,10 @@ function Session({ user }) {
 
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      // Chrome bug: cancelling immediately before speaking can cancel the NEXT utterance too.
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Chrome/Safari bug: utterance is garbage collected if not stored globally
-      window.currentUtterance = utterance;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const enVoice = voices.find(v => v.lang.startsWith('en-') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Premium'))) || voices[0];
-      if (enVoice) utterance.voice = enVoice;
-      
-      const fallbackTimeout = setTimeout(() => {
-        setIsCustomerSpeaking(true);
-      }, 500);
-      
-      utterance.onstart = () => {
-        clearTimeout(fallbackTimeout);
-        setIsCustomerSpeaking(true);
-      };
+      utterance.onstart = () => setIsCustomerSpeaking(true);
       
       utterance.onend = () => {
         setIsCustomerSpeaking(false);
@@ -111,21 +88,19 @@ function Session({ user }) {
             try {
               recognitionRef.current.start();
             } catch (err) {
-              if (err.name === 'InvalidStateError') setIsRecording(true);
+              if (err.name === 'InvalidStateError') {
+                setIsRecording(true);
+              }
             }
           }, 400); 
         }
       };
-      
-      utterance.onerror = (e) => {
-        console.error('SpeechSynthesis error:', e);
-        setIsCustomerSpeaking(false);
-      };
 
-      // Slight timeout to let cancel() resolve
-      setTimeout(() => {
-        window.speechSynthesis.speak(utterance);
-      }, 50);
+      // Fix for GC bug, just safely keep reference
+      window.currentUtterance = utterance;
+      
+      // Removed the custom voice selection that might be breaking it
+      window.speechSynthesis.speak(utterance);
     }
   };
 
